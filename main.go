@@ -14,12 +14,10 @@ import (
 
 func main() {
 	urls := readURLs("./data/input.txt")
+
 	var p Pages
-	p = parseRecords(urls)
-	// sort slice by artist name
-	sort.Slice(p, func(i, j int) bool {
-		return p[i].Artist < p[j].Artist
-	})
+	p = getRecords(urls)
+	p.sortBy("artist")
 	p.writeToJSON("./data/output.json")
 }
 
@@ -29,6 +27,27 @@ type PageInfo struct {
 }
 
 type Pages []PageInfo
+
+func (p Pages) sortBy(field string) {
+	switch field {
+	case "artist":
+		sort.Slice(p, func(i, j int) bool {
+			return p[i].Artist < p[j].Artist
+		})
+	case "album":
+		sort.Slice(p, func(i, j int) bool {
+			return p[i].Album < p[j].Album
+		})
+	case "price":
+		sort.Slice(p, func(i, j int) bool {
+			return p[i].AmazonPrice < p[j].AmazonPrice
+		})
+	default:
+		sort.Slice(p, func(i, j int) bool {
+			return p[i].Artist < p[j].Artist
+		})
+	}
+}
 
 func (p Pages) writeToJSON(outname string) {
 	j, _ := json.MarshalIndent(p, "", "	")
@@ -51,18 +70,18 @@ func (p Pages) writeToJSON(outname string) {
 	log.Printf("wrote %d bytes to %s", n, outname)
 }
 
-func parseRecords(urls []string) (p []PageInfo) {
+func getRecords(urls []string) (p []PageInfo) {
 	ch := make(chan PageInfo, len(urls))
 	for _, u := range urls {
 		go func(u string) {
-			var pi PageInfo
-			pi = getAmazonPageInfo(u)
-			ch <- pi
+			var pI PageInfo
+			pI = getAmazonPageInfo(u)
+			ch <- pI
 		}(u)
 	}
 	for range urls {
-		pi := <-ch
-		p = append(p, pi)
+		pI := <-ch
+		p = append(p, pI)
 	}
 	return p
 }
@@ -71,7 +90,7 @@ func getAmazonPageInfo(url string) (page PageInfo) {
 	c := colly.NewCollector()
 
 	c.OnHTML(`div[id=centerCol]`, func(e *colly.HTMLElement) {
-		log.Println("visiting", url)
+		// log.Println("visiting", url)
 		album := e.ChildText(`span[id=productTitle]`)
 		if album == "" {
 			log.Println("no title found", e.Request.URL)

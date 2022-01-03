@@ -30,7 +30,7 @@ func TestParseWebsite(t *testing.T) {
 		Artist:      "Tom Misch & Yussef Dayes",
 		Album:       "What Kinda Music",
 		amazonUrl:   u,
-		AmazonPrice: "£32.37",
+		AmazonPrice: "£32.64",
 	}
 
 	if gotPageInfo.Album != expectedPageInfo.Album {
