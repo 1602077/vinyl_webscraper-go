@@ -11,29 +11,33 @@ import (
 	"github.com/gocolly/colly"
 )
 
+func main() {
+	urls := readURLs("./input.txt")
+
+	var p Pages
+	for _, u := range urls {
+		pp := getAmazonPageInfo(u)
+		p = append(p, pp)
+	}
+	p.writeToJSON("./output.txt")
+}
+
 type PageInfo struct {
 	Artist, Album          string
 	amazonUrl, AmazonPrice string
 }
 
-var Pages []PageInfo
+type Pages []PageInfo
 
-func main() {
-
-	urls := readURLs("./input.txt")
-	for _, u := range urls {
-		p := getAmazonPageInfo(u)
-		Pages = append(Pages, p)
-	}
-
-	j, _ := json.MarshalIndent(Pages, "", "	")
+func (p Pages) writeToJSON(outname string) {
+	j, _ := json.MarshalIndent(p, "", "	")
 	// account for MarshalIndent escaping html
 	j = bytes.Replace(j, []byte("\\u003c"), []byte("<"), -1)
 	j = bytes.Replace(j, []byte("\\u003e"), []byte(">"), -1)
 	j = bytes.Replace(j, []byte("\\u0026"), []byte("&"), -1)
 
 	// write json byte slice to file
-	f, err := os.Create("./output.txt")
+	f, err := os.Create(outname)
 	if err != nil {
 		log.Fatal(err)
 	}
