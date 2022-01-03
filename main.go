@@ -12,14 +12,14 @@ import (
 )
 
 func main() {
-	urls := readURLs("./input.txt")
+	urls := readURLs("./data/input.txt")
 
 	var p Pages
 	for _, u := range urls {
 		pp := getAmazonPageInfo(u)
 		p = append(p, pp)
 	}
-	p.writeToJSON("./output.txt")
+	p.writeToJSON("./data/output.json")
 }
 
 type PageInfo struct {
@@ -47,7 +47,7 @@ func (p Pages) writeToJSON(outname string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("wrote %d bytes to \"./output.txt\"", n)
+	log.Printf("wrote %d bytes to %s", n, outname)
 }
 
 func getAmazonPageInfo(url string) (page PageInfo) {
