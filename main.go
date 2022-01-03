@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/gocolly/colly"
@@ -13,12 +14,12 @@ import (
 
 func main() {
 	urls := readURLs("./data/input.txt")
-
 	var p Pages
-	for _, u := range urls {
-		pp := getAmazonPageInfo(u)
-		p = append(p, pp)
-	}
+	p = parseRecords(urls)
+	// sort slice by artist name
+	sort.Slice(p, func(i, j int) bool {
+		return p[i].Artist < p[j].Artist
+	})
 	p.writeToJSON("./data/output.json")
 }
 
@@ -48,6 +49,22 @@ func (p Pages) writeToJSON(outname string) {
 		log.Fatal(err)
 	}
 	log.Printf("wrote %d bytes to %s", n, outname)
+}
+
+func parseRecords(urls []string) (p []PageInfo) {
+	ch := make(chan PageInfo, len(urls))
+	for _, u := range urls {
+		go func(u string) {
+			var pi PageInfo
+			pi = getAmazonPageInfo(u)
+			ch <- pi
+		}(u)
+	}
+	for range urls {
+		pi := <-ch
+		p = append(p, pi)
+	}
+	return p
 }
 
 func getAmazonPageInfo(url string) (page PageInfo) {
