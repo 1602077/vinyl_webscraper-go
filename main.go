@@ -14,43 +14,42 @@ import (
 
 func main() {
 	urls := readURLs("./data/input.txt")
-
-	var p Pages
+	var p Records
 	p = getRecords(urls)
 	p.sortBy("artist")
 	p.writeToJSON("./data/output.json")
 }
 
-type PageInfo struct {
+type Record struct {
 	Artist, Album          string
 	amazonUrl, AmazonPrice string
 }
 
-type Pages []PageInfo
+type Records []Record
 
-func (p Pages) sortBy(field string) {
+func (r Records) sortBy(field string) {
 	switch field {
 	case "artist":
-		sort.Slice(p, func(i, j int) bool {
-			return p[i].Artist < p[j].Artist
+		sort.Slice(r, func(i, j int) bool {
+			return r[i].Artist < r[j].Artist
 		})
 	case "album":
-		sort.Slice(p, func(i, j int) bool {
-			return p[i].Album < p[j].Album
+		sort.Slice(r, func(i, j int) bool {
+			return r[i].Album < r[j].Album
 		})
 	case "price":
-		sort.Slice(p, func(i, j int) bool {
-			return p[i].AmazonPrice < p[j].AmazonPrice
+		sort.Slice(r, func(i, j int) bool {
+			return r[i].AmazonPrice < r[j].AmazonPrice
 		})
 	default:
-		sort.Slice(p, func(i, j int) bool {
-			return p[i].Artist < p[j].Artist
+		sort.Slice(r, func(i, j int) bool {
+			return r[i].Artist < r[j].Artist
 		})
 	}
 }
 
-func (p Pages) writeToJSON(outname string) {
-	j, _ := json.MarshalIndent(p, "", "	")
+func (r Records) writeToJSON(outname string) {
+	j, _ := json.MarshalIndent(r, "", "	")
 	// account for MarshalIndent escaping html
 	j = bytes.Replace(j, []byte("\\u003c"), []byte("<"), -1)
 	j = bytes.Replace(j, []byte("\\u003e"), []byte(">"), -1)
@@ -70,23 +69,23 @@ func (p Pages) writeToJSON(outname string) {
 	log.Printf("wrote %d bytes to %s", n, outname)
 }
 
-func getRecords(urls []string) (p []PageInfo) {
-	ch := make(chan PageInfo, len(urls))
+func getRecords(urls []string) (records []Record) {
+	ch := make(chan Record, len(urls))
 	for _, u := range urls {
 		go func(u string) {
-			var pI PageInfo
-			pI = getAmazonPageInfo(u)
-			ch <- pI
+			var r Record
+			r = getAmazonPageInfo(u)
+			ch <- r
 		}(u)
 	}
 	for range urls {
-		pI := <-ch
-		p = append(p, pI)
+		r := <-ch
+		records = append(records, r)
 	}
-	return p
+	return records
 }
 
-func getAmazonPageInfo(url string) (page PageInfo) {
+func getAmazonPageInfo(url string) (r Record) {
 	c := colly.NewCollector()
 
 	c.OnHTML(`div[id=centerCol]`, func(e *colly.HTMLElement) {
@@ -106,7 +105,7 @@ func getAmazonPageInfo(url string) (page PageInfo) {
 			log.Println("no price found", e.Request.URL)
 		}
 
-		page = PageInfo{
+		r = Record{
 			Album:       strings.Replace(album, " [VINYL]", "", 1),
 			Artist:      artist,
 			amazonUrl:   url,

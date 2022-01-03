@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -21,12 +22,12 @@ func TestCreateURL(t *testing.T) {
 	}
 }
 
-func TestParseWebsite(t *testing.T) {
+func TestGetAmazonPageInfo(t *testing.T) {
 	// WKM amazon url
 	u := "https://www.amazon.co.uk/What-Kinda-Music-VINYL-Misch/dp/B084P38346/ref=sr_1_1?keywords=what+kinda+music+vinyl&qid=1641158805&sr=8-1"
 
 	gotPageInfo := getAmazonPageInfo(u)
-	expectedPageInfo := PageInfo{
+	expectedPageInfo := Record{
 		Artist:      "Tom Misch & Yussef Dayes",
 		Album:       "What Kinda Music",
 		amazonUrl:   u,
@@ -41,5 +42,21 @@ func TestParseWebsite(t *testing.T) {
 	}
 	if gotPageInfo.AmazonPrice != expectedPageInfo.AmazonPrice {
 		t.Errorf("output %s not equal to expected %s", gotPageInfo.AmazonPrice, expectedPageInfo.AmazonPrice)
+	}
+}
+
+func TestGetRecords(t *testing.T) {
+	var sing, parr Records
+	urls := readURLs("./data/input.txt")
+	parr = getRecords(urls)
+	for _, u := range urls {
+		sing = append(
+			sing,
+			getAmazonPageInfo(u),
+		)
+	}
+	if reflect.DeepEqual(sing, parr) {
+		t.Error("concurrent and non-concurrent outputs do not match")
+
 	}
 }
