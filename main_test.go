@@ -27,10 +27,10 @@ func TestParseWebsite(t *testing.T) {
 
 	gotPageInfo := getAmazonPageInfo(u)
 	expectedPageInfo := PageInfo{
-		url:    u,
-		Artist: "Tom Misch & Yussef Dayes",
-		Album:  "What Kinda Music",
-		Price:  "£32.37",
+		Artist:      "Tom Misch & Yussef Dayes",
+		Album:       "What Kinda Music",
+		amazonUrl:   u,
+		AmazonPrice: "£32.37",
 	}
 
 	if gotPageInfo.Album != expectedPageInfo.Album {
@@ -39,7 +39,7 @@ func TestParseWebsite(t *testing.T) {
 	if gotPageInfo.Artist != expectedPageInfo.Artist {
 		t.Errorf("output %s not equal to expected %s", gotPageInfo.Artist, expectedPageInfo.Artist)
 	}
-	if gotPageInfo.Price != expectedPageInfo.Price {
-		t.Errorf("output %s not equal to expected %s", gotPageInfo.Price, expectedPageInfo.Price)
+	if gotPageInfo.AmazonPrice != expectedPageInfo.AmazonPrice {
+		t.Errorf("output %s not equal to expected %s", gotPageInfo.AmazonPrice, expectedPageInfo.AmazonPrice)
 	}
 }

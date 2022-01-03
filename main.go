@@ -5,24 +5,21 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"net/http"
-	"net/url"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/gocolly/colly"
 )
 
 type PageInfo struct {
-	url, Artist, Album string
-	// Price              float32
-	Price string
+	Artist, Album          string
+	amazonUrl, AmazonPrice string
 }
 
 var Pages []PageInfo
 
 func main() {
+
 	urls := readURLs("./input.txt")
 	for _, u := range urls {
 		p := getAmazonPageInfo(u)
@@ -70,10 +67,10 @@ func getAmazonPageInfo(url string) (page PageInfo) {
 		}
 
 		page = PageInfo{
-			url:    url,
-			Album:  strings.Replace(album, " [VINYL]", "", 1),
-			Price:  price,
-			Artist: artist,
+			Album:       strings.Replace(album, " [VINYL]", "", 1),
+			Artist:      artist,
+			amazonUrl:   url,
+			AmazonPrice: price,
 		}
 	})
 	c.Visit(url)
@@ -87,37 +84,4 @@ func readURLs(filename string) []string {
 	}
 	d := strings.Split(string(data), "\n")
 	return d[:len(d)-1]
-}
-
-const amazonBaseURL = "https://www.amazon.co.uk/s"
-
-func createURL(baseURL, recordName string) string {
-	var u *url.URL
-	var err error
-	u, err = url.Parse(baseURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-	params := url.Values{}
-	params.Add("k", recordName+" vinyl")
-	u.RawQuery = params.Encode()
-	return u.String()
-}
-
-func getHTML(url string) string {
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	resp, err := client.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(body)
 }
