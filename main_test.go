@@ -2,6 +2,7 @@ package main
 
 import (
 	"reflect"
+	"regexp"
 	"testing"
 )
 
@@ -31,7 +32,7 @@ func TestGetAmazonPageInfo(t *testing.T) {
 		Artist:      "Tom Misch & Yussef Dayes",
 		Album:       "What Kinda Music",
 		amazonUrl:   u,
-		AmazonPrice: "£32.64",
+		AmazonPrice: "£xx.xx",
 	}
 
 	if gotPageInfo.Album != expectedPageInfo.Album {
@@ -40,8 +41,12 @@ func TestGetAmazonPageInfo(t *testing.T) {
 	if gotPageInfo.Artist != expectedPageInfo.Artist {
 		t.Errorf("output %s not equal to expected %s", gotPageInfo.Artist, expectedPageInfo.Artist)
 	}
-	if gotPageInfo.AmazonPrice != expectedPageInfo.AmazonPrice {
-		t.Errorf("output %s not equal to expected %s", gotPageInfo.AmazonPrice, expectedPageInfo.AmazonPrice)
+	// remove numbers to account for varying string
+	re := regexp.MustCompile(`\d`)
+	gotPrice := string(re.ReplaceAll([]byte(gotPageInfo.AmazonPrice), []byte("x")))
+
+	if gotPrice != expectedPageInfo.AmazonPrice {
+		t.Errorf("output %s not equal to expected %s", gotPrice, expectedPageInfo.AmazonPrice)
 	}
 }
 
