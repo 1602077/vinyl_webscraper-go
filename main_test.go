@@ -1,11 +1,69 @@
 package main
 
 import (
-	"reflect"
-	"regexp"
+	"fmt"
 	"testing"
+	"time"
 )
 
+var WKM = Record{
+	Artist:      "Tom Misch",
+	Album:       "What Kinda Music",
+	AmazonPrice: "£30",
+}
+
+var LF = Record{
+	Artist:      "Jorja Smith",
+	Album:       "Lost & Found",
+	AmazonPrice: "£22.75",
+}
+
+var NWBD = Record{
+	Artist:      "Loyle Carner",
+	Album:       "Not Waving, But Drowning",
+	AmazonPrice: "£25",
+}
+
+// tests that embedded history records with date is formatted correctly
+func TestRecordHistory(t *testing.T) {
+	today := time.Now()
+	records := Records{WKM, LF}
+
+	data := RecordHistory{
+		{Date: today, Records: records},
+	}
+	fmt.Println(data)
+	data.writeToJSON("./data/TestRecordHistory.JSON")
+}
+
+func TestReadFROMJSON(t *testing.T) {
+	filename := "./data/TestRecordHistory.JSON"
+	var rh RecordHistory
+	rh.ReadFromJSON(filename)
+
+	if len(rh) == 0 {
+		t.Errorf("Read of %s failed, length of record history is 0", filename)
+	}
+}
+
+// test that record read in from JSON can be merged current scrape
+func TestMergeRecordHistories(t *testing.T) {
+	filename := "./data/TestRecordHistory.JSON"
+	var rh RecordHistory
+	rh.ReadFromJSON(filename)
+
+	today := time.Now()
+
+	rh.MergeRecordHistories(RecordInstance{today, Records{NWBD}})
+	rh.writeToJSON("./data/TestRecordHistoryMerge.JSON")
+
+	if len(rh) != 2 {
+		t.Errorf("Expected record history to contain  2 dates of scraping, got %v", len(rh))
+	}
+
+}
+
+/*
 type urlTest struct {
 	baseURL, recordName, expected string
 }
@@ -62,6 +120,6 @@ func TestGetRecords(t *testing.T) {
 	}
 	if reflect.DeepEqual(sing, parr) {
 		t.Error("concurrent and non-concurrent outputs do not match")
-
 	}
 }
+*/
