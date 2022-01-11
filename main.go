@@ -15,17 +15,23 @@ import (
 
 func main() {
 	urls := readURLs("./data/input.txt")
+
 	// Get current price of records in wishlist
 	var r Records
 	r = getRecords(urls)
+	r.sortBy("artist")
 	r.writeToJSON("./data/currentPrices.JSON")
 
 	// Append current and historical pricing
-	// TODO: Reimplement sorting function for `RecordHistory` Type
 	var rh RecordHistory
-	rh.ReadFromJSON("./data/output.json")
+	if ReadErr := rh.ReadFromJSON("./data/allPrices.JSON"); ReadErr != nil {
+		log.Print("`./data/allPrices.JSON` does not exist; writing to new file")
+	}
 	rh.MergeRecordHistories(RecordInstance{Date: time.Now(), Records: r})
+	rh.sortBy("artist")
 	rh.writeToJSON("./data/allPrices.JSON")
+
+	// TODO: Pretty print output into a neat table comparing historical prices
 }
 
 func getRecords(urls []string) (records []Record) {
@@ -90,8 +96,51 @@ type Record struct {
 
 type Records []Record
 
-// TODO: Reimplement to account for nested JSON with date
 func (r Records) sortBy(field string) {
+	sortRecordsByField(r, field)
+}
+
+func (r Records) writeToJSON(outname string) {
+	j, _ := json.MarshalIndent(r, "", "	")
+	cleanseWriteJSON(j, outname)
+}
+
+type RecordInstance struct {
+	Date    time.Time
+	Records Records
+}
+
+type RecordHistory []RecordInstance
+
+func (rh RecordHistory) writeToJSON(outname string) {
+	j, _ := json.MarshalIndent(rh, "", " ")
+	cleanseWriteJSON(j, outname)
+}
+
+func (rh *RecordHistory) ReadFromJSON(filename string) (ReadErr error) {
+	f, ReadErr := os.ReadFile(filename)
+	if ReadErr != nil {
+		return ReadErr
+	}
+	err := json.Unmarshal(f, &rh)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func (rh1 *RecordHistory) MergeRecordHistories(ri RecordInstance) {
+	*rh1 = append(*rh1, ri)
+}
+
+func (rh RecordHistory) sortBy(field string) {
+	for _, v := range rh {
+		r := v.Records
+		sortRecordsByField(r, field)
+	}
+}
+
+func sortRecordsByField(r Records, field string) {
 	switch field {
 	case "artist":
 		sort.Slice(r, func(i, j int) bool {
@@ -112,38 +161,8 @@ func (r Records) sortBy(field string) {
 	}
 }
 
-func (r Records) writeToJSON(outname string) {
-	j, _ := json.MarshalIndent(r, "", "	")
-	// account for MarshalIndent escaping html
-	j = bytes.Replace(j, []byte("\\u003c"), []byte("<"), -1)
-	j = bytes.Replace(j, []byte("\\u003e"), []byte(">"), -1)
-	j = bytes.Replace(j, []byte("\\u0026"), []byte("&"), -1)
-
-	// write json byte slice to file
-	f, err := os.Create(outname)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	n, err := f.Write(j)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("`Records` written to %s (%d bytes)", outname, n)
-}
-
-type RecordInstance struct {
-	Date    time.Time
-	Records Records
-}
-
-type RecordHistory []RecordInstance
-
-// TODO: Look into refactoring this & Record method
-func (rh RecordHistory) writeToJSON(outname string) {
-	j, _ := json.MarshalIndent(rh, "", " ")
-
+// Takes a JSON object in a byte slice, escpaes all characters, and writes to file
+func cleanseWriteJSON(j []byte, outname string) {
 	j = bytes.Replace(j, []byte("\\u003c"), []byte("<"), -1)
 	j = bytes.Replace(j, []byte("\\u003e"), []byte(">"), -1)
 	j = bytes.Replace(j, []byte("\\u0026"), []byte("&"), -1)
@@ -158,21 +177,5 @@ func (rh RecordHistory) writeToJSON(outname string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("`RecordHistory` written to %s (%d bytes)", outname, n)
-}
-
-// Reads in historical record pricing data from a saved JSON back into &rh
-func (rh *RecordHistory) ReadFromJSON(filename string) {
-	f, err := ioutil.ReadFile(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = json.Unmarshal(f, &rh)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (rh1 *RecordHistory) MergeRecordHistories(ri RecordInstance) {
-	*rh1 = append(*rh1, ri)
+	log.Printf("`%s` written (%v bytes)", outname, n)
 }

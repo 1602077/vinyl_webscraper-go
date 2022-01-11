@@ -60,7 +60,14 @@ func TestMergeRecordHistories(t *testing.T) {
 	if len(rh) != 2 {
 		t.Errorf("Expected record history to contain  2 dates of scraping, got %v", len(rh))
 	}
+}
 
+func TestRecordHistorySortBy(t *testing.T) {
+	var rh RecordHistory
+	rh.ReadFromJSON("./data/allPrices.JSON")
+
+	rh.sortBy("album")
+	fmt.Print(rh)
 }
 
 /*
