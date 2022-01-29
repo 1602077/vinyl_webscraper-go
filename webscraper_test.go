@@ -1,30 +1,34 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 	"testing"
 )
 
-type urlTest struct {
-	baseURL, recordName, expected string
-}
+func TestArtistParese(t *testing.T) {
+	tests := []struct{ str, name string }{
+		{"Aphex Twin 678 ratings  Learn more about free returns. ...", "Aphex Twin"},
+		{"Aphex Twin 67 ratings  Learn more about free returns. ...", "Aphex Twin"},
+		{"Tom Misch 12 ratings ...", "Tom Misch"},
+		{"0 Yussef Dayes 12345 ratings ...", "0 Yussef Dayes"},
+	}
 
-var urlTests = []urlTest{
-	{amazonBaseURL, "what kinda music", "https://www.amazon.co.uk/s?k=what+kinda+music+vinyl"},
-	{amazonBaseURL, "venice", "https://www.amazon.co.uk/s?k=venice+vinyl"},
-}
+	for _, tt := range tests {
+		testname := fmt.Sprintf("testing %s parse", tt.name)
+		t.Run(testname, func(t *testing.T) {
+			got := parseArtist(tt.str)
+			want := tt.name
+			if got != want {
+				t.Errorf("artist parse failed: want %v, got %v", want, got)
+			}
 
-func TestCreateURL(t *testing.T) {
-	for _, test := range urlTests {
-		if out := createURL(amazonBaseURL, test.recordName); out != test.expected {
-			t.Errorf("output %s not equal to expected %q", out, test.expected)
-		}
+		})
 	}
 }
 
 func TestGetAmazonPageInfo(t *testing.T) {
-	// WKM amazon url
 	u := "https://www.amazon.co.uk/What-Kinda-Music-VINYL-Misch/dp/B084P38346/ref=sr_1_1?keywords=what+kinda+music+vinyl&qid=1641158805&sr=8-1"
 
 	gotPageInfo := getAmazonPageInfo(u)
@@ -38,18 +42,20 @@ func TestGetAmazonPageInfo(t *testing.T) {
 	if gotPageInfo.Album != expectedPageInfo.Album {
 		t.Errorf("output %s not equal to expected %s", gotPageInfo.Album, expectedPageInfo.Album)
 	}
+
 	if gotPageInfo.Artist != expectedPageInfo.Artist {
 		t.Errorf("output %s not equal to expected %s", gotPageInfo.Artist, expectedPageInfo.Artist)
 	}
-	// remove numbers to account for varying string
+
+	// remove numbers to account for varying price
 	re := regexp.MustCompile(`\d`)
 	gotPrice := string(re.ReplaceAll([]byte(gotPageInfo.AmazonPrice), []byte("x")))
-
-	if gotPrice != expectedPageInfo.AmazonPrice {
+	if gotPrice != "" && gotPrice != expectedPageInfo.AmazonPrice {
 		t.Errorf("output %s not equal to expected %s", gotPrice, expectedPageInfo.AmazonPrice)
 	}
 }
 
+// Tests that concurrent implimentation matches single threaded version
 func TestGetRecords(t *testing.T) {
 	var sing, parr Records
 	urls := readURLs("./data/input.txt")
@@ -61,7 +67,6 @@ func TestGetRecords(t *testing.T) {
 		)
 	}
 	if reflect.DeepEqual(sing, parr) {
-		t.Error("concurrent and non-concurrent outputs do not match")
-
+		t.Errorf("non-concurrent and concurrentoutputs do not match.\nexpected: %v.\ngot:%v.", sing, parr)
 	}
 }
