@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 )
@@ -24,7 +25,7 @@ var NWBD = Record{
 	AmazonPrice: "£25",
 }
 
-// tests that embedded history records with date is formatted correctly
+// Tests that embedded history records with date is formatted correctly
 func TestRecordHistory(t *testing.T) {
 	today := time.Now()
 	records := Records{WKM, LF}
@@ -46,7 +47,7 @@ func TestReadFROMJSON(t *testing.T) {
 	}
 }
 
-// test that record read in from JSON can be merged current scrape
+// Test that record read in from JSON can be merged current scrape
 func TestMergeRecordHistories(t *testing.T) {
 	filename := "./data/TestRecordHistory.JSON"
 	var rh RecordHistory
@@ -60,8 +61,11 @@ func TestMergeRecordHistories(t *testing.T) {
 	if len(rh) != 2 {
 		t.Errorf("Expected record history to contain  2 dates of scraping, got %v", len(rh))
 	}
+	os.Remove("./data/TestRecordHistory.JSON")
+	os.Remove("./data/TestRecordHistoryMerge.JSON")
 }
 
+/*
 func TestRecordHistorySortBy(t *testing.T) {
 	var rh RecordHistory
 	rh.ReadFromJSON("./data/allPrices.JSON")
@@ -70,7 +74,6 @@ func TestRecordHistorySortBy(t *testing.T) {
 	fmt.Print(rh)
 }
 
-/*
 type urlTest struct {
 	baseURL, recordName, expected string
 }
