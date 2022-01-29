@@ -4,6 +4,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/gocolly/colly"
@@ -29,7 +30,7 @@ func getAmazonPageInfo(url string) (r Record) {
 			log.Println("no title found", e.Request.URL)
 		}
 
-		artist := e.ChildTexts(`a.a-link-normal`)[0]
+		artist := e.ChildText(`a.a-link-normal`)
 		if artist == "" {
 			log.Println("no artist found", e.Request.URL)
 		}
@@ -41,13 +42,19 @@ func getAmazonPageInfo(url string) (r Record) {
 
 		r = Record{
 			Album:       strings.Replace(album, " [VINYL]", "", 1),
-			Artist:      artist,
+			Artist:      parseArtist(artist),
 			amazonUrl:   url,
 			AmazonPrice: price,
 		}
 	})
 	c.Visit(url)
 	return
+}
+
+func parseArtist(s string) string {
+	re := regexp.MustCompile(` \d+ ratings`)
+	indx := re.FindStringIndex(s)[0]
+	return s[:indx]
 }
 
 // Concurrently calls `getAmazonPageInfo` for a list of URLS.

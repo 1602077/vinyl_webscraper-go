@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 )
@@ -15,16 +14,15 @@ func main() {
 	r.sortBy("artist")
 	r.writeToJSON("./data/currentPrices.JSON")
 
-	fmt.Printf("\nCURRENT PRICE DATAFRAME:\n%v\n", r.ConvertToDataFrame())
-
 	// Append current and historical pricing
 	var rh RecordHistory
 	if ReadErr := rh.ReadFromJSON("./data/allPrices.JSON"); ReadErr != nil {
 		log.Print("`./data/allPrices.JSON` does not exist; writing to new file")
 	}
-	rh.MergeRecordHistories(RecordInstance{Date: time.Now(), Records: r})
+
+	today := time.Now().Format("2006-01-02")
+
+	rh.MergeRecordHistories(RecordInstance{Date: today, Records: r})
 	rh.sortBy("artist")
 	rh.writeToJSON("./data/allPrices.JSON")
-
-	// TODO: Pretty print output into a neat table comparing historical prices
 }
