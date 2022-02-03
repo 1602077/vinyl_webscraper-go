@@ -21,7 +21,7 @@ func readURLs(filename string) []string {
 }
 
 // Gets the Artist, Album Name and Price for a given record from amazon URL.
-func getAmazonPageInfo(url string) (r Record) {
+func getAmazonPageInfo(url string) (r *Record) {
 	c := colly.NewCollector()
 
 	c.OnHTML(`div[id=centerCol]`, func(e *colly.HTMLElement) {
@@ -40,7 +40,7 @@ func getAmazonPageInfo(url string) (r Record) {
 			log.Println("no price found", e.Request.URL)
 		}
 
-		r = Record{
+		r = &Record{
 			Album:       strings.Replace(album, " [VINYL]", "", 1),
 			Artist:      parseArtist(artist),
 			amazonUrl:   url,
@@ -58,11 +58,11 @@ func parseArtist(s string) string {
 }
 
 // Concurrently calls `getAmazonPageInfo` for a list of URLS.
-func getRecords(urls []string) (records []Record) {
-	ch := make(chan Record, len(urls))
+func getRecords(urls []string) (records Records) {
+	ch := make(chan *Record, len(urls))
 	for _, u := range urls {
 		go func(u string) {
-			var r Record
+			var r *Record
 			r = getAmazonPageInfo(u)
 			ch <- r
 		}(u)

@@ -24,7 +24,7 @@ var NWBD = Record{
 
 func TestMergeRecordHistories(t *testing.T) {
 	t.Run("it merges a RecordInstance with Record History", func(t *testing.T) {
-		var TestRecords = Records{WKM, LF}
+		var TestRecords = Records{&WKM, &LF}
 		var rh = RecordHistory{RecordInstance{Date: "yesterday", Records: TestRecords}}
 		var ri = RecordInstance{Date: "today", Records: TestRecords}
 
@@ -39,8 +39,8 @@ func TestMergeRecordHistories(t *testing.T) {
 	})
 
 	t.Run("it replaces duplicate date with RecordInstance being merged in", func(t *testing.T) {
-		var rh = RecordHistory{RecordInstance{Date: "today", Records: Records{WKM, LF}}}
-		var ri = RecordInstance{Date: "today", Records: Records{NWBD}}
+		var rh = RecordHistory{RecordInstance{Date: "today", Records: Records{&WKM, &LF}}}
+		var ri = RecordInstance{Date: "today", Records: Records{&NWBD}}
 
 		rh.MergeRecordHistories(ri)
 

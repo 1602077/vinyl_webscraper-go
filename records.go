@@ -14,37 +14,31 @@ type Record struct {
 	amazonUrl, AmazonPrice string
 }
 
-type Records []Record
-
-func (r Records) sortBy(field string) {
-	sortRecordsByField(r, field)
-}
+type Records []*Record
 
 func (r Records) writeToJSON(outname string) {
 	j, _ := json.MarshalIndent(r, "", "	")
 	cleanWriteJSON(j, outname)
 }
 
-func sortRecordsByField(r Records, field string) {
-	switch field {
-	case "artist":
-		sort.Slice(r, func(i, j int) bool {
-			return r[i].Artist < r[j].Artist
-		})
-	case "album":
-		sort.Slice(r, func(i, j int) bool {
-			return r[i].Album < r[j].Album
-		})
-	case "price":
-		sort.Slice(r, func(i, j int) bool {
-			return r[i].AmazonPrice < r[j].AmazonPrice
-		})
-	default:
-		sort.Slice(r, func(i, j int) bool {
-			return r[i].Artist < r[j].Artist
-		})
-	}
-}
+// Records sort.Interfaces
+type byArtist []*Record
+
+func (x byArtist) Len() int           { return len(x) }
+func (x byArtist) Less(i, j int) bool { return x[i].Artist < x[j].Artist }
+func (x byArtist) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
+
+type byAlbum []*Record
+
+func (x byAlbum) Len() int           { return len(x) }
+func (x byAlbum) Less(i, j int) bool { return x[i].Album < x[j].Album }
+func (x byAlbum) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
+
+type byAmazonPrice []*Record
+
+func (x byAmazonPrice) Len() int           { return len(x) }
+func (x byAmazonPrice) Less(i, j int) bool { return x[i].AmazonPrice < x[j].AmazonPrice }
+func (x byAmazonPrice) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 
 // Store of record wishlist data at a current instance in time.
 type RecordInstance struct {
@@ -88,7 +82,16 @@ func (rh *RecordHistory) MergeRecordHistories(ri RecordInstance) {
 func (rh RecordHistory) sortBy(field string) {
 	for _, v := range rh {
 		r := v.Records
-		sortRecordsByField(r, field)
+		switch field {
+		case "artist":
+			sort.Sort(byArtist(r))
+		case "album":
+			sort.Sort(byAlbum(r))
+		case "price":
+			sort.Sort(byAmazonPrice(r))
+		default:
+			sort.Sort(byArtist(r))
+		}
 	}
 }
 
