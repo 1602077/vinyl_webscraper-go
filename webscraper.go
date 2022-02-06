@@ -44,7 +44,7 @@ func getAmazonPageInfo(url string) (r *Record) {
 			Album:       strings.Replace(album, " [VINYL]", "", 1),
 			Artist:      parseArtist(artist),
 			amazonUrl:   url,
-			AmazonPrice: price,
+			AmazonPrice: parsePrice(price),
 		}
 	})
 	c.Visit(url)
@@ -55,6 +55,11 @@ func parseArtist(s string) string {
 	re := regexp.MustCompile(` \d+ ratings`)
 	indx := re.FindStringIndex(s)[0]
 	return s[:indx]
+}
+
+func parsePrice(s string) string {
+	re := regexp.MustCompile(`£[\d.]+`)
+	return re.FindString(s)
 }
 
 // Concurrently calls `getAmazonPageInfo` for a list of URLS.

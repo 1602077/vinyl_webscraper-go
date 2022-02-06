@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestArtistParese(t *testing.T) {
+func TestArtistParse(t *testing.T) {
 	tests := []struct{ str, name string }{
 		{"Aphex Twin 678 ratings  Learn more about free returns. ...", "Aphex Twin"},
 		{"Aphex Twin 67 ratings  Learn more about free returns. ...", "Aphex Twin"},
@@ -23,7 +23,26 @@ func TestArtistParese(t *testing.T) {
 			if got != want {
 				t.Errorf("artist parse failed: want %v, got %v", want, got)
 			}
+		})
+	}
+}
 
+func TestPriceParse(t *testing.T) {
+	tests := []struct{ str, price string }{
+		{"£21.72£23.03", "£21.72"},
+		{"£21.72", "£21.72"},
+		{"£121.72", "£121.72"},
+		{"£121.72teststrgkjg", "£121.72"},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("testing %s parse", tt.price)
+		t.Run(testname, func(t *testing.T) {
+			got := parsePrice(tt.str)
+			want := tt.price
+			if got != want {
+				t.Errorf("price parse failed: want %v, got %v", want, got)
+			}
 		})
 	}
 }

@@ -14,6 +14,7 @@ func main() {
 	r = getRecords(urls)
 	sort.Sort(byArtist(r))
 	r.writeToJSON("./data/currentPrices.JSON")
+	r.printRecords()
 
 	// Append current and historical pricing
 	var rh RecordHistory

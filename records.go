@@ -4,9 +4,11 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"sort"
+	"text/tabwriter"
 )
 
 type Record struct {
@@ -39,6 +41,17 @@ type byAmazonPrice []*Record
 func (x byAmazonPrice) Len() int           { return len(x) }
 func (x byAmazonPrice) Less(i, j int) bool { return x[i].AmazonPrice < x[j].AmazonPrice }
 func (x byAmazonPrice) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
+
+func (r Records) printRecords() {
+	const format = "%v\t%v\t%v\n"
+	tw := new(tabwriter.Writer).Init(os.Stdout, 0, 8, 4, ' ', 0)
+	fmt.Fprintf(tw, format, "ARTIST", "ALBUM", "PRICE")
+	fmt.Fprintf(tw, format, "------", "-----", "-----")
+	for _, rr := range r {
+		fmt.Fprintf(tw, format, rr.Artist, rr.Album, rr.AmazonPrice)
+	}
+	tw.Flush()
+}
 
 // Store of record wishlist data at a current instance in time.
 type RecordInstance struct {
