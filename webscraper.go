@@ -64,7 +64,9 @@ func parsePrice(s string) string {
 
 // Concurrently calls `getAmazonPageInfo` for a list of URLS.
 func getRecords(urls []string) (records Records) {
-	ch := make(chan *Record, len(urls))
+	// limit to 10 concurrent requests at a time.
+	// ch := make(chan *Record, len(urls))
+	ch := make(chan *Record, 10)
 	for _, u := range urls {
 		go func(u string) {
 			var r *Record

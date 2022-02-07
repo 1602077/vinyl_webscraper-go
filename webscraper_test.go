@@ -86,6 +86,6 @@ func TestGetRecords(t *testing.T) {
 		)
 	}
 	if reflect.DeepEqual(sing, parr) {
-		t.Errorf("non-concurrent and concurrentoutputs do not match.\nexpected: %v.\ngot:%v.", sing, parr)
+		t.Errorf("non-concurrent and concurrent outputs do not match.\nexpected: %v.\ngot:%v.", sing, parr)
 	}
 }

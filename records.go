@@ -42,6 +42,19 @@ func (x byAmazonPrice) Len() int           { return len(x) }
 func (x byAmazonPrice) Less(i, j int) bool { return x[i].AmazonPrice < x[j].AmazonPrice }
 func (x byAmazonPrice) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 
+func (r Records) sortBy(field string) {
+	switch field {
+	case "artist":
+		sort.Sort(byArtist(r))
+	case "album":
+		sort.Sort(byAlbum(r))
+	case "price":
+		sort.Sort(byAmazonPrice(r))
+	default:
+		sort.Sort(byArtist(r))
+	}
+}
+
 func (r Records) printRecords() {
 	const format = "%v\t%v\t%v\n"
 	tw := new(tabwriter.Writer).Init(os.Stdout, 0, 8, 4, ' ', 0)
@@ -95,16 +108,7 @@ func (rh *RecordHistory) MergeRecordHistories(ri RecordInstance) {
 func (rh RecordHistory) sortBy(field string) {
 	for _, v := range rh {
 		r := v.Records
-		switch field {
-		case "artist":
-			sort.Sort(byArtist(r))
-		case "album":
-			sort.Sort(byAlbum(r))
-		case "price":
-			sort.Sort(byAmazonPrice(r))
-		default:
-			sort.Sort(byArtist(r))
-		}
+		r.sortBy(field)
 	}
 }
 

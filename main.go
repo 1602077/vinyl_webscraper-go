@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"sort"
 	"time"
 )
 
@@ -12,7 +11,7 @@ func main() {
 	// Get current price of records in wishlist
 	var r Records
 	r = getRecords(urls)
-	sort.Sort(byArtist(r))
+	r.sortBy("artist")
 	r.writeToJSON("./data/currentPrices.JSON")
 	r.printRecords()
 
