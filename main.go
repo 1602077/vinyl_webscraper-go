@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"time"
 )
@@ -12,12 +13,15 @@ func main() {
 	var r Records
 	r = getRecords(urls)
 	r.sortBy("artist")
-	r.writeToJSON("./data/currentPrices.JSON")
 	r.printRecords()
 
-	// Append current and historical pricing
+	bs, _ := json.MarshalIndent(r, "", " ")
+	WriteToFile(bs, "./data/currentPrices.JSON")
+
+	// Read in historical pricing and merge with current
 	var rh RecordHistory
-	if ReadErr := rh.ReadFromJSON("./data/allPrices.JSON"); ReadErr != nil {
+	rh, ReadErr := ReadFile("./data/allPrices.JSON", rh)
+	if ReadErr != nil {
 		log.Print("`./data/allPrices.JSON` does not exist; writing to new file")
 	}
 
@@ -25,5 +29,7 @@ func main() {
 
 	rh.MergeRecordHistories(RecordInstance{Date: today, Records: r})
 	rh.sortBy("price")
-	rh.writeToJSON("./data/allPrices.JSON")
+
+	bs, _ = json.MarshalIndent(rh, "", " ")
+	WriteToFile(bs, "./data/allPrices.JSON")
 }

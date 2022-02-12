@@ -18,43 +18,6 @@ type Record struct {
 
 type Records []*Record
 
-func (r Records) writeToJSON(outname string) {
-	j, _ := json.MarshalIndent(r, "", "	")
-	cleanWriteJSON(j, outname)
-}
-
-// Records sort.Interfaces
-type byArtist []*Record
-
-func (x byArtist) Len() int           { return len(x) }
-func (x byArtist) Less(i, j int) bool { return x[i].Artist < x[j].Artist }
-func (x byArtist) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
-
-type byAlbum []*Record
-
-func (x byAlbum) Len() int           { return len(x) }
-func (x byAlbum) Less(i, j int) bool { return x[i].Album < x[j].Album }
-func (x byAlbum) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
-
-type byAmazonPrice []*Record
-
-func (x byAmazonPrice) Len() int           { return len(x) }
-func (x byAmazonPrice) Less(i, j int) bool { return x[i].AmazonPrice < x[j].AmazonPrice }
-func (x byAmazonPrice) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
-
-func (r Records) sortBy(field string) {
-	switch field {
-	case "artist":
-		sort.Sort(byArtist(r))
-	case "album":
-		sort.Sort(byAlbum(r))
-	case "price":
-		sort.Sort(byAmazonPrice(r))
-	default:
-		sort.Sort(byArtist(r))
-	}
-}
-
 func (r Records) printRecords() {
 	const format = "%v\t%v\t%v\n"
 	tw := new(tabwriter.Writer).Init(os.Stdout, 0, 8, 4, ' ', 0)
@@ -66,6 +29,32 @@ func (r Records) printRecords() {
 	tw.Flush()
 }
 
+type RecordsSort struct {
+	r    []*Record
+	less func(i, j *Record) bool
+}
+
+func (r RecordsSort) Len() int           { return len(r.r) }
+func (r RecordsSort) Swap(i, j int)      { r.r[i], r.r[j] = r.r[j], r.r[i] }
+func (r RecordsSort) Less(i, j int) bool { return r.less(r.r[i], r.r[j]) }
+
+func sortByArtist(i, j *Record) bool { return i.Artist < j.Artist }
+func sortByAlbum(i, j *Record) bool  { return i.Album < j.Album }
+func sortByPrice(i, j *Record) bool  { return i.Album < j.Album }
+
+func (r Records) sortBy(field string) {
+	switch field {
+	case "artist":
+		sort.Sort(RecordsSort{r, sortByArtist})
+	case "album":
+		sort.Sort(RecordsSort{r, sortByAlbum})
+	case "price":
+		sort.Sort(RecordsSort{r, sortByPrice})
+	default:
+		sort.Sort(RecordsSort{r, sortByArtist})
+	}
+}
+
 // Store of record wishlist data at a current instance in time.
 type RecordInstance struct {
 	Date    string
@@ -73,23 +62,6 @@ type RecordInstance struct {
 }
 
 type RecordHistory []RecordInstance
-
-func (rh RecordHistory) writeToJSON(outname string) {
-	j, _ := json.MarshalIndent(rh, "", " ")
-	cleanWriteJSON(j, outname)
-}
-
-func (rh *RecordHistory) ReadFromJSON(filename string) (ReadErr error) {
-	f, ReadErr := os.ReadFile(filename)
-	if ReadErr != nil {
-		return ReadErr
-	}
-	err := json.Unmarshal(f, &rh)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return nil
-}
 
 func (rh *RecordHistory) MergeRecordHistories(ri RecordInstance) {
 	var mergedRH RecordHistory
@@ -112,13 +84,15 @@ func (rh RecordHistory) sortBy(field string) {
 	}
 }
 
-// Takes a JSON object in a byte slice, escpaes all characters, and writes to file
-func cleanWriteJSON(j []byte, outname string) {
+// PERSISTENCE FUNCTIONS
+
+// Write byte slice to file, converting all chars back to utf-8
+func WriteToFile(j []byte, filename string) {
 	j = bytes.Replace(j, []byte("\\u003c"), []byte("<"), -1)
 	j = bytes.Replace(j, []byte("\\u003e"), []byte(">"), -1)
 	j = bytes.Replace(j, []byte("\\u0026"), []byte("&"), -1)
 
-	f, err := os.Create(outname)
+	f, err := os.Create(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,5 +102,18 @@ func cleanWriteJSON(j []byte, outname string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("`%s` written (%v bytes)", outname, n)
+	log.Printf("`%s` written (%v bytes)", filename, n)
+}
+
+// Reads in JSON data to RecordHistory struct
+func ReadFile(filename string, rh RecordHistory) (RecordHistory, error) {
+	f, ReadErr := os.ReadFile(filename)
+	if ReadErr != nil {
+		return nil, ReadErr
+	}
+	err := json.Unmarshal(f, &rh)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return rh, nil
 }
