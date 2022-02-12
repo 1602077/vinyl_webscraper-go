@@ -1,5 +1,5 @@
 // Webscraper to scrape record information from an amazon URL.
-package main
+package webscraper
 
 import (
 	"io/ioutil"
@@ -11,7 +11,7 @@ import (
 )
 
 // Reads from filename a list of urls each seperated by a `\n`.
-func readURLs(filename string) []string {
+func ReadURLs(filename string) []string {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Fatal(err)

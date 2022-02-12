@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"log"
 	"time"
+
+	ws "github.com/1602077/webscraper/pkg/webscraper"
 )
 
 func main() {
-	urls := readURLs("./data/input.txt")
+	urls := ws.ReadURLs("./data/input.txt")
 
 	// Get current price of records in wishlist
 	var r Records
@@ -32,5 +34,4 @@ func main() {
 
 	bs, _ = json.MarshalIndent(rh, "", " ")
 	WriteToFile(bs, "./data/allPrices.JSON")
-
 }

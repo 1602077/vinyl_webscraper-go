@@ -1,30 +1,24 @@
-package main
+package records
 
 import (
 	"testing"
 )
 
-var WKM = Record{
-	Artist:      "Tom Misch",
-	Album:       "What Kinda Music",
-	AmazonPrice: "£30",
+func NewRecord(artist, album, price string) *Record {
+	return &Record{
+		Artist:      artist,
+		Album:       album,
+		AmazonPrice: price,
+	}
 }
 
-var LF = Record{
-	Artist:      "Jorja Smith",
-	Album:       "Lost & Found",
-	AmazonPrice: "£22.75",
-}
-
-var NWBD = Record{
-	Artist:      "Loyle Carner",
-	Album:       "Not Waving, But Drowning",
-	AmazonPrice: "£25",
-}
+var WKM = NewRecord("Tom Misch", "What Kinda Music", "£30")
+var LF = NewRecord("Jorja Smith", "Lost & Found", "£22.75")
+var NWBD = NewRecord("Loyle Carner", "Not Waving, But Drowning", "£25")
 
 func TestMergeRecordHistories(t *testing.T) {
 	t.Run("it merges a RecordInstance with Record History", func(t *testing.T) {
-		var TestRecords = Records{&WKM, &LF}
+		var TestRecords = Records{WKM, LF}
 		var rh = RecordHistory{RecordInstance{Date: "yesterday", Records: TestRecords}}
 		var ri = RecordInstance{Date: "today", Records: TestRecords}
 
@@ -39,8 +33,8 @@ func TestMergeRecordHistories(t *testing.T) {
 	})
 
 	t.Run("it replaces duplicate date with RecordInstance being merged in", func(t *testing.T) {
-		var rh = RecordHistory{RecordInstance{Date: "today", Records: Records{&WKM, &LF}}}
-		var ri = RecordInstance{Date: "today", Records: Records{&NWBD}}
+		var rh = RecordHistory{RecordInstance{Date: "today", Records: Records{WKM, LF}}}
+		var ri = RecordInstance{Date: "today", Records: Records{NWBD}}
 
 		rh.MergeRecordHistories(ri)
 

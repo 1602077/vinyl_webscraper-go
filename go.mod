@@ -2,10 +2,7 @@ module webscraper
 
 go 1.17
 
-require (
-	github.com/go-gota/gota v0.12.0
-	github.com/gocolly/colly v1.2.0
-)
+require github.com/gocolly/colly v1.2.0
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
@@ -21,6 +18,5 @@ require (
 	github.com/temoto/robotstxt v1.1.2 // indirect
 	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8 // indirect
 	golang.org/x/text v0.3.6 // indirect
-	gonum.org/v1/gonum v0.9.1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 )
