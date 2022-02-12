@@ -12,7 +12,7 @@ func main() {
 	// Get current price of records in wishlist
 	var r Records
 	r = getRecords(urls)
-	r.sortBy("artist")
+	r.Sort(ByArtist)
 	r.printRecords()
 
 	bs, _ := json.MarshalIndent(r, "", " ")
@@ -28,8 +28,9 @@ func main() {
 	today := time.Now().Format("2006-01-02")
 
 	rh.MergeRecordHistories(RecordInstance{Date: today, Records: r})
-	rh.sortBy("price")
+	rh.Sort(ByArtist)
 
 	bs, _ = json.MarshalIndent(rh, "", " ")
 	WriteToFile(bs, "./data/allPrices.JSON")
+
 }

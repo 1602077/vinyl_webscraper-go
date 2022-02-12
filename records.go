@@ -38,21 +38,12 @@ func (r RecordsSort) Len() int           { return len(r.r) }
 func (r RecordsSort) Swap(i, j int)      { r.r[i], r.r[j] = r.r[j], r.r[i] }
 func (r RecordsSort) Less(i, j int) bool { return r.less(r.r[i], r.r[j]) }
 
-func sortByArtist(i, j *Record) bool { return i.Artist < j.Artist }
-func sortByAlbum(i, j *Record) bool  { return i.Album < j.Album }
-func sortByPrice(i, j *Record) bool  { return i.Album < j.Album }
+func ByArtist(i, j *Record) bool { return i.Artist < j.Artist }
+func ByAlbum(i, j *Record) bool  { return i.Album < j.Album }
+func ByPrice(i, j *Record) bool  { return i.Album < j.Album }
 
-func (r Records) sortBy(field string) {
-	switch field {
-	case "artist":
-		sort.Sort(RecordsSort{r, sortByArtist})
-	case "album":
-		sort.Sort(RecordsSort{r, sortByAlbum})
-	case "price":
-		sort.Sort(RecordsSort{r, sortByPrice})
-	default:
-		sort.Sort(RecordsSort{r, sortByArtist})
-	}
+func (r Records) Sort(ByField func(*Record, *Record) bool) {
+	sort.Sort(RecordsSort{r, ByField})
 }
 
 // Store of record wishlist data at a current instance in time.
@@ -77,10 +68,10 @@ func (rh *RecordHistory) MergeRecordHistories(ri RecordInstance) {
 	*rh = mergedRH
 }
 
-func (rh RecordHistory) sortBy(field string) {
+func (rh RecordHistory) Sort(ByField func(*Record, *Record) bool) {
 	for _, v := range rh {
 		r := v.Records
-		r.sortBy(field)
+		r.Sort(ByField)
 	}
 }
 
