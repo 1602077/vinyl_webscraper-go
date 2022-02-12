@@ -2,7 +2,10 @@ module github.com/1602077/webscraper
 
 go 1.17
 
-require github.com/gocolly/colly v1.2.0
+require (
+	github.com/gocolly/colly v1.2.0
+	github.com/lib/pq v1.10.4
+)
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
