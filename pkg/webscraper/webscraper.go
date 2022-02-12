@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	r "github.com/1602077/webscraper/pkg/records"
 	"github.com/gocolly/colly"
 )
 
@@ -21,7 +22,7 @@ func ReadURLs(filename string) []string {
 }
 
 // Gets the Artist, Album Name and Price for a given record from amazon URL.
-func getAmazonPageInfo(url string) (r *Record) {
+func getAmazonPageInfo(url string) (pageinfo *r.Record) {
 	c := colly.NewCollector()
 
 	c.OnHTML(`div[id=centerCol]`, func(e *colly.HTMLElement) {
@@ -40,12 +41,12 @@ func getAmazonPageInfo(url string) (r *Record) {
 			log.Println("no price found", e.Request.URL)
 		}
 
-		r = &Record{
-			Album:       strings.Replace(album, " [VINYL]", "", 1),
-			Artist:      parseArtist(artist),
-			amazonUrl:   url,
-			AmazonPrice: parsePrice(price),
-		}
+		pageinfo = r.NewRecord(
+			strings.Replace(album, " [VINYL]", "", 1),
+			parseArtist(artist),
+			url,
+			parsePrice(price),
+		)
 	})
 	c.Visit(url)
 	return
@@ -63,20 +64,20 @@ func parsePrice(s string) string {
 }
 
 // Concurrently calls `getAmazonPageInfo` for a list of URLS.
-func getRecords(urls []string) (records Records) {
+func GetRecords(urls []string) (rs r.Records) {
 	// limit to 10 concurrent requests at a time.
 	// ch := make(chan *Record, len(urls))
-	ch := make(chan *Record, 10)
+	ch := make(chan *r.Record, 10)
 	for _, u := range urls {
 		go func(u string) {
-			var r *Record
+			var r *r.Record
 			r = getAmazonPageInfo(u)
 			ch <- r
 		}(u)
 	}
 	for range urls {
 		r := <-ch
-		records = append(records, r)
+		rs = append(rs, r)
 	}
-	return records
+	return rs
 }

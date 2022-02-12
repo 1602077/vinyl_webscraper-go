@@ -4,14 +4,6 @@ import (
 	"testing"
 )
 
-func NewRecord(artist, album, price string) *Record {
-	return &Record{
-		Artist:      artist,
-		Album:       album,
-		AmazonPrice: price,
-	}
-}
-
 var WKM = NewRecord("Tom Misch", "What Kinda Music", "£30")
 var LF = NewRecord("Jorja Smith", "Lost & Found", "£22.75")
 var NWBD = NewRecord("Loyle Carner", "Not Waving, But Drowning", "£25")
