@@ -25,6 +25,18 @@ func NewRecord(artist, album, url, price string) *Record {
 	}
 }
 
+func (r *Record) GetArtist() string {
+	return r.artist
+}
+
+func (r *Record) GetAlbum() string {
+	return r.album
+}
+
+func (r *Record) GetPrice() string {
+	return r.amazonPrice
+}
+
 type Records []*Record
 
 func (r Records) PrintRecords() {
