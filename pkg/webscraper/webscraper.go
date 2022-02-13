@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 
 	r "github.com/1602077/webscraper/pkg/records"
@@ -58,9 +59,11 @@ func parseArtist(s string) string {
 	return s[:indx]
 }
 
-func parsePrice(s string) string {
-	re := regexp.MustCompile(`£[\d.]+`)
-	return re.FindString(s)
+func parsePrice(s string) float64 {
+	re := regexp.MustCompile(`[\d.]+`)
+	price_str := re.FindString(s)
+	flt, _ := strconv.ParseFloat(price_str, 32)
+	return flt
 }
 
 // Concurrently calls `getAmazonPageInfo` for a list of URLS.

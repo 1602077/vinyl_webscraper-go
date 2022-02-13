@@ -9,13 +9,12 @@ import (
 )
 
 func TestQueryRecordAllRows(t *testing.T) {
-	db := ConnectToDB(config)
-	defer db.Close()
+	pg := NewPostgresCli(DBNAME).
+		Connect().
+		wipe().
+		insertTestData()
 
-	ExecuteFromSQLFile(db, config, "../../data/wipeTables.sql")
-	ExecuteFromSQLFile(db, config, "../../data/testData.sql")
-
-	result := QueryRecordAllRows(db)
+	result := pg.QueryRecordAllRows()
 	defer result.Close()
 	if result == nil {
 		t.Errorf("query failed, returned nil.")
@@ -23,13 +22,12 @@ func TestQueryRecordAllRows(t *testing.T) {
 }
 
 func TestReadQueryToRecord(t *testing.T) {
-	db := ConnectToDB(config)
-	defer db.Close()
+	pg := NewPostgresCli(DBNAME).
+		Connect().
+		wipe().
+		insertTestData()
 
-	ExecuteFromSQLFile(db, config, "../../data/wipeTables.sql")
-	ExecuteFromSQLFile(db, config, "../../data/testData.sql")
-
-	result := QueryRecordAllRows(db)
+	result := pg.QueryRecordAllRows()
 	defer result.Close()
 
 	Records := ReadQueryToRecord(result)
@@ -45,21 +43,20 @@ func TestReadQueryToRecord(t *testing.T) {
 }
 
 func TestInsertRecord(t *testing.T) {
-	db := ConnectToDB(config)
-	defer db.Close()
-
-	ExecuteFromSQLFile(db, config, "../../data/wipeTables.sql")
+	pg := NewPostgresCli(DBNAME).
+		Connect().
+		wipe()
 
 	TestRecords := r.Records{
 		r.NewRecord("Tom Misch", "Geography", "", ""),
 		r.NewRecord("John Mayer", "Battle Studies", "", ""),
 	}
 	for _, rr := range TestRecords {
-		id := InsertRecordMaster(db, rr)
+		id := pg.InsertRecordMaster(rr)
 		log.Printf("%s inserted at id %v", rr.GetAlbum(), id)
 	}
 
-	result := QueryRecordAllRows(db)
+	result := pg.QueryRecordAllRows()
 	defer result.Close()
 
 	QueryRecords := ReadQueryToRecord(result)
@@ -84,16 +81,15 @@ var tests = []struct {
 }
 
 func TestGetRecordID(t *testing.T) {
-	db := ConnectToDB(config)
-	defer db.Close()
+	pg := NewPostgresCli(DBNAME).
+		Connect().
+		wipe()
 
-	ExecuteFromSQLFile(db, config, "../../data/wipeTables.sql")
-
-	InsertRecordMaster(db, recThatExists)
+	pg.InsertRecordMaster(recThatExists)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			id, ok := GetRecordID(db, tt.record)
+			id, ok := pg.GetRecordID(tt.record)
 			if tt.exists != ok {
 				t.Errorf("err: expected %t, got %t", tt.exists, ok)
 			}
@@ -105,13 +101,12 @@ func TestGetRecordID(t *testing.T) {
 }
 
 func TestInsertRecordPricing(t *testing.T) {
-	db := ConnectToDB(config)
-	defer db.Close()
+	pg := NewPostgresCli(DBNAME).
+		Connect().
+		wipe().
+		insertTestData()
 
-	ExecuteFromSQLFile(db, config, "../../data/wipeTables.sql")
-	ExecuteFromSQLFile(db, config, "../../data/testData.sql")
-
-	NumRecordRows := len(ReadQueryToRecord(QueryRecordAllRows(db)))
+	NumRecordRows := len(ReadQueryToRecord(pg.QueryRecordAllRows()))
 	log.Println("Initial number of records")
 
 	for _, tt := range tests {
@@ -119,8 +114,8 @@ func TestInsertRecordPricing(t *testing.T) {
 			if !tt.exists {
 				NumRecordRows++
 			}
-			InsertRecordPricing(db, tt.record)
-			CurrRows := len(ReadQueryToRecord(QueryRecordAllRows(db)))
+			pg.InserRecordAllTables(tt.record)
+			CurrRows := len(ReadQueryToRecord(pg.QueryRecordAllRows()))
 			// if record exists should not change number of rows
 			// else should increase number of rows by amount of records
 			if NumRecordRows != CurrRows {
@@ -131,14 +126,14 @@ func TestInsertRecordPricing(t *testing.T) {
 
 	t.Run("multiple inserts only write once to pricing table if day is the same",
 		func(t *testing.T) {
-			ExecuteFromSQLFile(db, config, "../../data/wipeTables.sql")
-			InsertRecordPricing(db, recThatExists)
-			InsertRecordPricing(db, recThatExists2)
-			InsertRecordPricing(db, recThatDoesNotExist)
+			pg.wipe()
+			pg.InserRecordAllTables(recThatExists)
+			pg.InserRecordAllTables(recThatExists2)
+			pg.InserRecordAllTables(recThatDoesNotExist)
 
 			//get length of twos; two duplicate record writes so expect pricing table to have 2 rows
 			var numRows int
-			rows := QueryPriceAllRows(db)
+			rows := pg.QueryPriceAllRows()
 			for rows.Next() {
 				numRows++
 			}

@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-var WKM = NewRecord("Tom Misch", "What Kinda Music", "£30")
-var LF = NewRecord("Jorja Smith", "Lost & Found", "£22.75")
-var NWBD = NewRecord("Loyle Carner", "Not Waving, But Drowning", "£25")
+var WKM = NewRecord("Tom Misch", "What Kinda Music", "", float64(30))
+var LF = NewRecord("Jorja Smith", "Lost & Found", "", float64(22.75))
+var NWBD = NewRecord("Loyle Carner", "Not Waving, But Drowning", "", float64(25))
 
 func TestMergeRecordHistories(t *testing.T) {
 	t.Run("it merges a RecordInstance with Record History", func(t *testing.T) {

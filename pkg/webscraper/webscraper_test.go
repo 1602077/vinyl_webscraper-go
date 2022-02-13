@@ -2,6 +2,7 @@ package webscraper
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 )
 
@@ -27,17 +28,17 @@ func TestArtistParse(t *testing.T) {
 
 func TestPriceParse(t *testing.T) {
 	tests := []struct{ str, price string }{
-		{"£21.72£23.03", "£21.72"},
-		{"£21.72", "£21.72"},
-		{"£121.72", "£121.72"},
-		{"£121.72teststrgkjg", "£121.72"},
+		{"£21.72£23.03", "21.72"},
+		{"£21.72", "21.72"},
+		{"£121.72", "121.72"},
+		{"£121.72teststrgkjg", "121.72"},
 	}
 
 	for _, tt := range tests {
 		testname := fmt.Sprintf("testing %s parse", tt.price)
 		t.Run(testname, func(t *testing.T) {
 			got := parsePrice(tt.str)
-			want := tt.price
+			want, _ := strconv.ParseFloat(tt.price, 32)
 			if got != want {
 				t.Errorf("price parse failed: want %v, got %v", want, got)
 			}
