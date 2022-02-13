@@ -1,7 +1,6 @@
 -- schema.sql
-CREATE DATABASE dev;
 
-CREATE TABLE IF NOT EXISTS record
+CREATE TABLE IF NOT EXISTS records
 (
     id SERIAL PRIMARY KEY,
     artist VARCHAR (100) NOT NULL,
@@ -9,11 +8,11 @@ CREATE TABLE IF NOT EXISTS record
     UNIQUE (artist, album)
 );
 
-CREATE TABLE IF NOT EXISTS price
+CREATE TABLE IF NOT EXISTS prices
 (
     id SERIAL PRIMARY KEY,
     date DATE NOT NULL DEFAULT CURRENT_DATE,
-    price DOUBLE PRECISION NOT NULL,
-    record_id int NOT NULL REFERENCES record (id),
+    price NUMERIC(6,2) NOT NULL,
+    record_id int NOT NULL REFERENCES records (id),
     UNIQUE (date, record_id)
 );
