@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	r "github.com/1602077/webscraper/pkg/records"
 	_ "github.com/lib/pq"
@@ -68,14 +69,16 @@ func ExecuteFromSQLFile(db *sql.DB, c pgConfig, filename string) {
 	}
 }
 
+// Runs "SELECT * FROM record"
 func QueryRecordAllRows(db *sql.DB) *sql.Rows {
 	rows, err := db.Query("SELECT * FROM record")
 	if err != nil {
-		log.Fatal("err: quering all rows on records table failed.")
+		log.Fatal("err: quering all rows on 'records' table failed.")
 	}
 	return rows
 }
 
+// Reads in the result of a db.Query(...) [*sql.Rows] to r.Records type
 func ReadQueryToRecord(rows *sql.Rows) r.Records {
 	var Records r.Records
 	for rows.Next() {
@@ -91,24 +94,98 @@ func ReadQueryToRecord(rows *sql.Rows) r.Records {
 	return Records
 }
 
-func InsertIntoRecordTable(db *sql.DB, rec r.Records) {
-	insertStatement := `
+// Inserts a single record into 'record' table and returns it's id
+func InsertRecordMaster(db *sql.DB, rec *r.Record) int {
+	insertQuery := `
 		INSERT INTO
 			record (artist, album)
 		VALUES
 			($1, $2)
 		RETURNING ID;`
-	// var id int
-	for _, rr := range rec {
-		_, err := db.Exec(insertStatement, rr.GetArtist(), rr.GetAlbum())
-		if err != nil {
-			log.Printf("err: insert failed: %v", err)
-		}
-		// err := rows.Scan(&id)
-		// if err != nil {
-		// 	log.Printf("id retrival failed")
+
+	var id int
+	if err := db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err != nil {
+		log.Print("err: insert into 'record' table failed.")
+	}
+	return id
+}
+
+// Retrieves the id of a record from 'record' table
+func GetRecordID(db *sql.DB, rec *r.Record) (int, bool) {
+	existsQuery := `
+		SELECT id
+		FROM record
+		WHERE artist = $1 AND album = $2
+		LIMIT 1;`
+
+	var id int
+	if err := db.QueryRow(existsQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err != nil {
+		log.Printf("err: record not found in 'record' table.")
+		return 0, false
+	}
+	return id, true
+}
+
+// Retrieves the id of a price row for a given record_id and date
+func GetPriceID(db *sql.DB, recordID int, date time.Time) (int, bool) {
+	existsQuery := `
+		SELECT id
+		FROM price
+		WHERE date = $1 AND record_id = $2
+		LIMIT 1;`
+
+	var id int
+	if err := db.QueryRow(existsQuery, date, recordID).Scan(&id); err != nil {
+		log.Printf("err: price not found in 'price' table.")
+		return 0, false
+	}
+	return id, true
+}
+
+// Checks if record exists in 'record' table and adds if not & then inserts into pricing table
+func InsertRecordPricing(db *sql.DB, rec *r.Record) int {
+	// check if exists in 'record table'
+	recordID, ok := GetRecordID(db, rec)
+	if !ok {
+		recordID = InsertRecordMaster(db, rec)
 	}
 
-	// log.Printf("new record inserted at id: %v", id)
+	today := time.Now()
+	// today := time.Now().Format("2006-01-02")
 
+	priceID, ok := GetPriceID(db, recordID, today)
+	if ok {
+		// replace instead
+		updateQuery := `
+			UPDATE price
+			SET price = $1
+			WHERE date = $2 AND record_id = $3
+			RETURNING ID;`
+
+		if err := db.QueryRow(updateQuery, rec.GetPrice(), today, recordID).Scan(&priceID); err != nil {
+			log.Printf("err:  price not found in 'price' table.")
+			return priceID
+		}
+	}
+
+	insertQuery := `
+		INSERT INTO
+			price (date, price, record_id)
+		VALUES
+			($1, $2, $3)
+		RETURNING ID;`
+
+	if err := db.QueryRow(insertQuery, today, rec.GetPrice(), recordID).Scan(&priceID); err != nil {
+		log.Printf("err: insert into 'price' table failed.")
+	}
+	return priceID
+}
+
+// Runs "SELECT * FROM price"
+func QueryPriceAllRows(db *sql.DB) *sql.Rows {
+	rows, err := db.Query("SELECT * FROM price")
+	if err != nil {
+		log.Fatal("err: quering all rows on 'price' table failed.")
+	}
+	return rows
 }
