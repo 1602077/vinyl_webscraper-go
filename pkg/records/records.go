@@ -44,8 +44,8 @@ func (r Records) PrintRecords() {
 	const format = "%v\t%v\t%v\n"
 	tw := new(tabwriter.Writer).Init(os.Stdout, 0, 8, 4, ' ', 0)
 	fmt.Println()
-	fmt.Fprintf(tw, format, "ARTIST", "ALBUM", "PRICE")
-	fmt.Fprintf(tw, format, "------", "-----", "-----")
+	fmt.Fprintf(tw, format, "ARTIST", "ALBUM", "CURRENT PRICE")
+	fmt.Fprintf(tw, format, "------", "-----", "-------------")
 	for _, rr := range r {
 		fmt.Fprintf(tw, format, rr.artist, rr.album, rr.amazonPrice)
 	}
@@ -71,7 +71,7 @@ func (r Records) Sort(ByField func(*Record, *Record) bool) {
 	sort.Sort(RecordsSort{r, ByField})
 }
 
-//-------------------------   DEPRACATED    -------------------------
+// -------------------------   DEPRACATED    -------------------------
 
 // Deprecated: Store of record wishlist data at a current instance in time.
 type RecordInstance struct {

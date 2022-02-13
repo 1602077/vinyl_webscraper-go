@@ -96,17 +96,17 @@ func (pg *PgInstance) insertTestData() *PgInstance {
 	return pg
 }
 
-// Runs "SELECT * FROM record"
+// Runs "SELECT * FROM records"
 func (pg *PgInstance) QueryRecordAllRows() *sql.Rows {
-	rows, err := pg.db.Query("SELECT * FROM record")
+	rows, err := pg.db.Query("SELECT * FROM records;")
 	if err != nil {
-		log.Fatal("err: quering all rows on 'records' table failed.")
+		log.Fatal("err: querying all rows on 'records' table failed.")
 	}
 	return rows
 }
 
 // Reads in the result of a db.Query(...) [*sql.Rows] to r.Records type
-func ReadQueryToRecord(rows *sql.Rows) r.Records {
+func ReadPartialQueryToRecord(rows *sql.Rows) r.Records {
 	var Records r.Records
 	for rows.Next() {
 		var id, art, alb string
@@ -125,14 +125,14 @@ func ReadQueryToRecord(rows *sql.Rows) r.Records {
 func (pg *PgInstance) InsertRecordMaster(rec *r.Record) int {
 	insertQuery := `
 		INSERT INTO
-			record (artist, album)
+			records (artist, album)
 		VALUES
 			($1, $2)
 		RETURNING ID;`
 
 	var id int
 	if err := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err != nil {
-		log.Print("err: insert into 'record' table failed.")
+		log.Print("err: insert into 'records' table failed.")
 	}
 	return id
 }
@@ -141,13 +141,12 @@ func (pg *PgInstance) InsertRecordMaster(rec *r.Record) int {
 func (pg *PgInstance) GetRecordID(rec *r.Record) (int, bool) {
 	existsQuery := `
 		SELECT id
-		FROM record
+		FROM records
 		WHERE artist = $1 AND album = $2
 		LIMIT 1;`
 
 	var id int
 	if err := pg.db.QueryRow(existsQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err != nil {
-		log.Printf("err: record not found in 'record' table.")
 		return 0, false
 	}
 	return id, true
@@ -157,20 +156,19 @@ func (pg *PgInstance) GetRecordID(rec *r.Record) (int, bool) {
 func (pg *PgInstance) GetPriceID(recordID int, date time.Time) (int, bool) {
 	existsQuery := `
 		SELECT id
-		FROM price
+		FROM prices
 		WHERE date = $1 AND record_id = $2
 		LIMIT 1;`
 
 	var id int
 	if err := pg.db.QueryRow(existsQuery, date, recordID).Scan(&id); err != nil {
-		log.Printf("err: price not found in 'price' table.")
 		return 0, false
 	}
 	return id, true
 }
 
 // Checks if record exists in 'record' table and adds if not & then inserts into pricing table
-func (pg *PgInstance) InserRecordAllTables(rec *r.Record) int {
+func (pg *PgInstance) InsertRecordAllTables(rec *r.Record) int {
 	// check if exists in 'record table'
 	recordID, ok := pg.GetRecordID(rec)
 	if !ok {
@@ -184,20 +182,20 @@ func (pg *PgInstance) InserRecordAllTables(rec *r.Record) int {
 	if ok {
 		// replace instead
 		updateQuery := `
-			UPDATE price
+			UPDATE prices
 			SET price = $1
 			WHERE date = $2 AND record_id = $3
 			RETURNING ID;`
 
 		if err := pg.db.QueryRow(updateQuery, rec.GetPrice(), today, recordID).Scan(&priceID); err != nil {
-			log.Printf("%s: no price currently stored  'price' table.", rec.GetAlbum())
+			log.Printf("%s: no price currently stored  'prices' table.", rec.GetAlbum())
 			return priceID
 		}
 	}
 
 	insertQuery := `
 		INSERT INTO
-			price (date, price, record_id)
+			prices (date, price, record_id)
 		VALUES
 			($1, $2, $3)
 		RETURNING ID;`
@@ -207,11 +205,50 @@ func (pg *PgInstance) InserRecordAllTables(rec *r.Record) int {
 	return priceID
 }
 
-// Runs "SELECT * FROM price"
+// Runs "SELECT * FROM prices"
 func (pg *PgInstance) QueryPriceAllRows() *sql.Rows {
-	rows, err := pg.db.Query("SELECT * FROM price")
+	rows, err := pg.db.Query("SELECT * FROM prices;")
 	if err != nil {
-		log.Fatal("err: quering all rows on 'price' table failed.")
+		log.Fatal("err: quering all rows on 'prices' table failed.")
 	}
 	return rows
+}
+
+// Gets most recent prices of all records
+func (pg *PgInstance) GetCurrentRecordPrices() *sql.Rows {
+	rows, err := pg.db.Query(`
+		SELECT r.Artist, r.Album, p.MaxPrice
+		FROM records r
+		INNER JOIN (
+			SELECT record_id, MAX(Date) as MaxDate, MAX(price) as MaxPrice
+			FROM prices
+			GROUP BY record_id
+		) p ON p.record_id = r.id;`)
+
+	if err != nil {
+		log.Fatal("err: queries all records current prices failed.")
+	}
+	return rows
+}
+
+func ReadQueryToRecord(rows *sql.Rows) r.Records {
+	var Records r.Records
+	for rows.Next() {
+		var art, alb string
+		var price float64
+		if err := rows.Scan(&art, &alb, &price); err != nil {
+			break
+		}
+		Records = append(Records, r.NewRecord(art, alb, "", price))
+	}
+	if err := rows.Err(); err != nil {
+		fmt.Printf("error: query row read failed")
+	}
+	return Records
+}
+
+func (pg *PgInstance) PrintCurrentRecordPrices() {
+	rows := pg.GetCurrentRecordPrices()
+	rec := ReadQueryToRecord(rows)
+	rec.PrintRecords()
 }

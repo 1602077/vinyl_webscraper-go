@@ -43,8 +43,8 @@ func getAmazonPageInfo(url string) (pageinfo *r.Record) {
 		}
 
 		pageinfo = r.NewRecord(
-			strings.Replace(album, " [VINYL]", "", 1),
 			parseArtist(artist),
+			strings.Replace(album, " [VINYL]", "", 1),
 			url,
 			parsePrice(price),
 		)

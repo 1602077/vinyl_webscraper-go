@@ -13,17 +13,18 @@ const (
 func main() {
 	urls := ws.ReadURLs("../data/input.txt")
 
-	// Get current price of records in wishlist
 	var currPrices r.Records
 	currPrices = ws.GetRecords(urls)
 
-	currPrices.Sort(r.ByArtist)
-	currPrices.PrintRecords()
+	// currPrices.Sort(r.ByArtist)
+	// currPrices.PrintRecords()
 
 	pg := db.NewPostgresCli(DBNAME).Connect()
 	defer pg.Close()
 
 	for _, rec := range currPrices {
-		pg.InserRecordAllTables(rec)
+		pg.InsertRecordAllTables(rec)
 	}
+
+	pg.PrintCurrentRecordPrices()
 }

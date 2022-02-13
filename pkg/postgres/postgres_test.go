@@ -30,7 +30,7 @@ func TestReadQueryToRecord(t *testing.T) {
 	result := pg.QueryRecordAllRows()
 	defer result.Close()
 
-	Records := ReadQueryToRecord(result)
+	Records := ReadPartialQueryToRecord(result)
 
 	length := 0
 	for range Records {
@@ -48,8 +48,8 @@ func TestInsertRecord(t *testing.T) {
 		wipe()
 
 	TestRecords := r.Records{
-		r.NewRecord("Tom Misch", "Geography", "", ""),
-		r.NewRecord("John Mayer", "Battle Studies", "", ""),
+		r.NewRecord("Tom Misch", "Geography", "", 0),
+		r.NewRecord("John Mayer", "Battle Studies", "", 0),
 	}
 	for _, rr := range TestRecords {
 		id := pg.InsertRecordMaster(rr)
@@ -59,16 +59,16 @@ func TestInsertRecord(t *testing.T) {
 	result := pg.QueryRecordAllRows()
 	defer result.Close()
 
-	QueryRecords := ReadQueryToRecord(result)
+	QueryRecords := ReadPartialQueryToRecord(result)
 
 	if !reflect.DeepEqual(TestRecords, QueryRecords) {
 		t.Errorf("error: insert failed: Inserted records %v and returned records %v do not match.", TestRecords, QueryRecords)
 	}
 }
 
-var recThatExists = r.NewRecord("TOM MISCH", "WHAT KINDA MUSIC", "", "20")
-var recThatExists2 = r.NewRecord("TOM MISCH", "WHAT KINDA MUSIC", "", "25")
-var recThatDoesNotExist = r.NewRecord("Bon Iver", "i,i", "", "10")
+var recThatExists = r.NewRecord("TOM MISCH", "WHAT KINDA MUSIC", "", 20)
+var recThatExists2 = r.NewRecord("TOM MISCH", "WHAT KINDA MUSIC", "", 25)
+var recThatDoesNotExist = r.NewRecord("Bon Iver", "i,i", "", 10)
 
 var tests = []struct {
 	name   string
@@ -106,16 +106,15 @@ func TestInsertRecordPricing(t *testing.T) {
 		wipe().
 		insertTestData()
 
-	NumRecordRows := len(ReadQueryToRecord(pg.QueryRecordAllRows()))
-	log.Println("Initial number of records")
+	NumRecordRows := len(ReadPartialQueryToRecord(pg.QueryRecordAllRows()))
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if !tt.exists {
 				NumRecordRows++
 			}
-			pg.InserRecordAllTables(tt.record)
-			CurrRows := len(ReadQueryToRecord(pg.QueryRecordAllRows()))
+			pg.InsertRecordAllTables(tt.record)
+			CurrRows := len(ReadPartialQueryToRecord(pg.QueryRecordAllRows()))
 			// if record exists should not change number of rows
 			// else should increase number of rows by amount of records
 			if NumRecordRows != CurrRows {
@@ -124,14 +123,14 @@ func TestInsertRecordPricing(t *testing.T) {
 		})
 	}
 
-	t.Run("multiple inserts only write once to pricing table if day is the same",
+	t.Run("multiple inserts into db only write once to pricing table if day is the same",
 		func(t *testing.T) {
 			pg.wipe()
-			pg.InserRecordAllTables(recThatExists)
-			pg.InserRecordAllTables(recThatExists2)
-			pg.InserRecordAllTables(recThatDoesNotExist)
+			pg.InsertRecordAllTables(recThatExists)
+			pg.InsertRecordAllTables(recThatExists2)
+			pg.InsertRecordAllTables(recThatDoesNotExist)
 
-			//get length of twos; two duplicate record writes so expect pricing table to have 2 rows
+			// two duplicate record writes so expect pricing table to have only 2 rows
 			var numRows int
 			rows := pg.QueryPriceAllRows()
 			for rows.Next() {
