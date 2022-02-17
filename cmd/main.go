@@ -6,9 +6,7 @@ import (
 	ws "github.com/1602077/webscraper/pkg/webscraper"
 )
 
-const (
-	DBNAME = "prod"
-)
+const DBNAME = "prod"
 
 func main() {
 	urls := ws.ReadURLs("../data/input.txt")

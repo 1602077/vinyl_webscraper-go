@@ -1,3 +1,4 @@
+// api methods for writing data to postgres db
 package postgres
 
 import (
@@ -28,9 +29,7 @@ func NewPgConfig(dbname string) *PgConfig {
 	}
 }
 
-const (
-	DBNAME = "dev"
-)
+const DBNAME = "dev"
 
 type PgInstance struct {
 	config *PgConfig
@@ -131,7 +130,7 @@ func (pg *PgInstance) InsertRecordMaster(rec *r.Record) int {
 		RETURNING ID;`
 
 	var id int
-	if err := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err != nil {
+	if rows := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); rows == sql.ErrNoRows {
 		log.Print("err: insert into 'records' table failed.")
 	}
 	return id
@@ -146,7 +145,7 @@ func (pg *PgInstance) GetRecordID(rec *r.Record) (int, bool) {
 		LIMIT 1;`
 
 	var id int
-	if err := pg.db.QueryRow(existsQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err != nil {
+	if rows := pg.db.QueryRow(existsQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); rows == sql.ErrNoRows {
 		return 0, false
 	}
 	return id, true
@@ -161,7 +160,7 @@ func (pg *PgInstance) GetPriceID(recordID int, date time.Time) (int, bool) {
 		LIMIT 1;`
 
 	var id int
-	if err := pg.db.QueryRow(existsQuery, date, recordID).Scan(&id); err != nil {
+	if rows := pg.db.QueryRow(existsQuery, date, recordID).Scan(&id); rows == sql.ErrNoRows {
 		return 0, false
 	}
 	return id, true
@@ -187,10 +186,12 @@ func (pg *PgInstance) InsertRecordAllTables(rec *r.Record) int {
 			WHERE date = $2 AND record_id = $3
 			RETURNING ID;`
 
-		if err := pg.db.QueryRow(updateQuery, rec.GetPrice(), today, recordID).Scan(&priceID); err != nil {
+		if rows := pg.db.QueryRow(updateQuery, rec.GetPrice(), today, recordID).Scan(&priceID); rows == sql.ErrNoRows {
 			log.Printf("%s: no price currently stored  'prices' table.", rec.GetAlbum())
 			return priceID
 		}
+		log.Printf("%s: updated in db.", rec.GetAlbum())
+		return priceID
 	}
 
 	insertQuery := `
@@ -200,7 +201,9 @@ func (pg *PgInstance) InsertRecordAllTables(rec *r.Record) int {
 			($1, $2, $3)
 		RETURNING ID;`
 
-	pg.db.QueryRow(insertQuery, today, rec.GetPrice(), recordID).Scan(&priceID)
+	if rows := pg.db.QueryRow(insertQuery, today, rec.GetPrice(), recordID).Scan(&priceID); rows == sql.ErrNoRows {
+		log.Fatalf("%s: price insert into db[prices] failed.", rec.GetAlbum())
+	}
 	log.Printf("%s: written to db.", rec.GetAlbum())
 	return priceID
 }
