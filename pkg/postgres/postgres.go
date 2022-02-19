@@ -63,7 +63,7 @@ func (pg *PgInstance) Connect() *PgInstance {
 	return pg
 }
 
-// Closes connection to database as specified by config field
+// Closes connection to database
 func (pg *PgInstance) Close() {
 	log.Printf("closing connection to database '%s'.", pg.config.dbname)
 	pg.db.Close()
@@ -82,13 +82,13 @@ func (pg *PgInstance) executeFromSQLFile(filename string) {
 	}
 }
 
-// Clears all data from tables
+// Clears all data from tables in pg db
 func (pg *PgInstance) wipe() *PgInstance {
 	pg.executeFromSQLFile("../../data/wipeTables.sql")
 	return pg
 }
 
-// Insert sample data into pg for testing
+// Insert sample data for testing
 func (pg *PgInstance) insertTestData() *PgInstance {
 	pg.executeFromSQLFile("../../data/testData.sql")
 	return pg
@@ -180,7 +180,6 @@ func (pg *PgInstance) InsertRecordAllTables(rec *r.Record) int {
 	today := time.Now()
 	priceID, ok := pg.GetPriceID(recordID, today)
 	if ok {
-		// replace instead
 		updateQuery := `
 			UPDATE prices
 			SET price = $1
@@ -231,7 +230,7 @@ func (pg *PgInstance) GetCurrentRecordPrices() *sql.Rows {
 	return rows
 }
 
-func ReadQueryToRecord(rows *sql.Rows) r.Records {
+func ReadQueryToRecords(rows *sql.Rows) r.Records {
 	var Records r.Records
 	for rows.Next() {
 		var art, alb string
@@ -249,6 +248,6 @@ func ReadQueryToRecord(rows *sql.Rows) r.Records {
 
 func (pg *PgInstance) PrintCurrentRecordPrices() {
 	rows := pg.GetCurrentRecordPrices()
-	rec := ReadQueryToRecord(rows)
+	rec := ReadQueryToRecords(rows)
 	rec.PrintRecords()
 }

@@ -15,10 +15,6 @@ func main() {
 	currPrices = ws.GetRecords(urls)
 
 	pg := db.NewPostgresCli(DBNAME).Connect()
-	// defer pg.Close()
-
-	// type(curPrices): r.Records -> []*Record
-	// type(rec): *r.Record)
 	for _, rec := range currPrices {
 		pg.InsertRecordAllTables(rec)
 	}

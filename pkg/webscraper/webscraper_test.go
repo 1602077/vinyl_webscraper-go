@@ -14,6 +14,7 @@ func TestArtistParse(t *testing.T) {
 		{"Aphex Twin 67 ratings  Learn more about free returns. ...", "Aphex Twin"},
 		{"Tom Misch 12 ratings ...", "Tom Misch"},
 		{"0 Yussef Dayes 12345 ratings ...", "0 Yussef Dayes"},
+		{"Arctic Monkeys 6,866 ratings  Learn more about free returns.", "Arctic Monkeys"},
 	}
 
 	for _, tt := range tests {
@@ -53,7 +54,8 @@ func TestGetAmazonPageInfo(t *testing.T) {
 
 	gotPageInfo := getAmazonPageInfo(u)
 	// empty := r.Record{}
-	expectedPageInfo := r.NewRecord("Tom Misch & Yussef Dayes", "What Kinda Music", u, 0.0)
+	expectedPageInfo := r.NewRecord("Arctic Monkeys", "AM", u, 0.0)
+	fmt.Print(gotPageInfo)
 
 	if gotPageInfo.GetAlbum() != expectedPageInfo.GetAlbum() {
 		t.Errorf("output %s not equal to expected %s", gotPageInfo.GetAlbum(), expectedPageInfo.GetAlbum())
