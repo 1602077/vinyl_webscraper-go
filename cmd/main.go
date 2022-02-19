@@ -14,15 +14,10 @@ func main() {
 	var currPrices r.Records
 	currPrices = ws.GetRecords(urls)
 
-	// currPrices.Sort(r.ByArtist)
-	// currPrices.PrintRecords()
-
 	pg := db.NewPostgresCli(DBNAME).Connect()
-	defer pg.Close()
-
 	for _, rec := range currPrices {
 		pg.InsertRecordAllTables(rec)
 	}
-
 	pg.PrintCurrentRecordPrices()
+	pg.Close()
 }

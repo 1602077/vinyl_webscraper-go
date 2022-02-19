@@ -54,7 +54,7 @@ func getAmazonPageInfo(url string) (pageinfo *r.Record) {
 }
 
 func parseArtist(s string) string {
-	re := regexp.MustCompile(` \d+ ratings`)
+	re := regexp.MustCompile(` \d+,?\d+ ratings`)
 	indx := re.FindStringIndex(s)[0]
 	return s[:indx]
 }
