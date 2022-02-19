@@ -50,7 +50,7 @@ func getAmazonPageInfo(url string) (pageinfo *r.Record) {
 		)
 	})
 	c.Visit(url)
-	return
+	return pageinfo
 }
 
 func parseArtist(s string) string {

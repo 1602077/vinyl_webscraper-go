@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+
+	r "github.com/1602077/webscraper/pkg/records"
 )
 
 func TestArtistParse(t *testing.T) {
@@ -46,34 +48,32 @@ func TestPriceParse(t *testing.T) {
 	}
 }
 
-/*
 func TestGetAmazonPageInfo(t *testing.T) {
-	u := "https://www.amazon.co.uk/What-Kinda-Music-VINYL-Misch/dp/B084P38346/ref=sr_1_1?keywords=what+kinda+music+vinyl&qid=1641158805&sr=8-1"
+	u := "https://www.amazon.co.uk/AM-VINYL-Arctic-Monkeys/dp/B00DKY4NBA/ref=sr_1_4?crid=EIQTUGWC5AAR&keywords=vinyl&qid=1645263030&sprefix=vinyl%2Caps%2C83&sr=8-4"
 
 	gotPageInfo := getAmazonPageInfo(u)
-	expectedPageInfo := Record{
-		Artist:      "Tom Misch & Yussef Dayes",
-		Album:       "What Kinda Music",
-		amazonUrl:   u,
-		AmazonPrice: "£xx.xx",
+	// empty := r.Record{}
+	expectedPageInfo := r.NewRecord("Tom Misch & Yussef Dayes", "What Kinda Music", u, 0.0)
+
+	if gotPageInfo.GetAlbum() != expectedPageInfo.GetAlbum() {
+		t.Errorf("output %s not equal to expected %s", gotPageInfo.GetAlbum(), expectedPageInfo.GetAlbum())
 	}
 
-	if gotPageInfo.Album != expectedPageInfo.Album {
-		t.Errorf("output %s not equal to expected %s", gotPageInfo.Album, expectedPageInfo.Album)
-	}
-
-	if gotPageInfo.Artist != expectedPageInfo.Artist {
-		t.Errorf("output %s not equal to expected %s", gotPageInfo.Artist, expectedPageInfo.Artist)
+	if gotPageInfo.GetArtist() != expectedPageInfo.GetArtist() {
+		t.Errorf("output %s not equal to expected %s", gotPageInfo.GetArtist(), expectedPageInfo.GetArtist())
 	}
 
 	// remove numbers to account for varying price
-	re := regexp.MustCompile(`\d`)
-	gotPrice := string(re.ReplaceAll([]byte(gotPageInfo.AmazonPrice), []byte("x")))
-	if gotPrice != "" && gotPrice != expectedPageInfo.AmazonPrice {
-		t.Errorf("output %s not equal to expected %s", gotPrice, expectedPageInfo.AmazonPrice)
-	}
+	/*
+		re := regexp.MustCompile(`\d`)
+		gotPrice := string(re.ReplaceAll([]byte(gotPageInfo.AmazonPrice), []byte("x")))
+		if gotPrice != "" && gotPrice != expectedPageInfo.AmazonPrice {
+			t.Errorf("output %s not equal to expected %s", gotPrice, expectedPageInfo.AmazonPrice)
+
+	*/
 }
 
+/*
 // Tests that concurrent implimentation matches single threaded version
 func TestGetRecords(t *testing.T) {
 	var sing, parr Records
