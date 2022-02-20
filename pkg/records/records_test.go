@@ -6,7 +6,7 @@ import (
 )
 
 func TestGetRecordMethods(t *testing.T) {
-	artist, album, price := "tom misch", "geography", float64(25)
+	artist, album, price := "tom misch", "geography", float32(25)
 	rec := NewRecord(artist, album, "", price)
 
 	if rec.GetArtist() != artist {
@@ -20,9 +20,9 @@ func TestGetRecordMethods(t *testing.T) {
 	}
 }
 
-var WKM = NewRecord("Tom Misch", "What Kinda Music", "", float64(30))
-var LF = NewRecord("Jorja Smith", "Lost & Found", "", float64(22.75))
-var NWBD = NewRecord("Loyle Carner", "Not Waving, But Drowning", "", float64(25))
+var WKM = NewRecord("Tom Misch", "What Kinda Music", "", float32(30))
+var LF = NewRecord("Jorja Smith", "Lost & Found", "", float32(22.75))
+var NWBD = NewRecord("Loyle Carner", "Not Waving, But Drowning", "", float32(25))
 
 func TestMergeRecordHistories(t *testing.T) {
 	t.Run("it merges a RecordInstance with Record History", func(t *testing.T) {

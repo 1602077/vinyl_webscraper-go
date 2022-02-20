@@ -41,7 +41,8 @@ func TestPriceParse(t *testing.T) {
 		testname := fmt.Sprintf("testing %s parse", tt.price)
 		t.Run(testname, func(t *testing.T) {
 			got := parsePrice(tt.str)
-			want, _ := strconv.ParseFloat(tt.price, 32)
+			pf, _ := strconv.ParseFloat(tt.price, 32)
+			want := float32(pf)
 			if got != want {
 				t.Errorf("price parse failed: want %v, got %v", want, got)
 			}
@@ -53,7 +54,6 @@ func TestGetAmazonPageInfo(t *testing.T) {
 	u := "https://www.amazon.co.uk/AM-VINYL-Arctic-Monkeys/dp/B00DKY4NBA/ref=sr_1_4?crid=EIQTUGWC5AAR&keywords=vinyl&qid=1645263030&sprefix=vinyl%2Caps%2C83&sr=8-4"
 
 	gotPageInfo := getAmazonPageInfo(u)
-	// empty := r.Record{}
 	expectedPageInfo := r.NewRecord("Arctic Monkeys", "AM", u, 0.0)
 	fmt.Print(gotPageInfo)
 
@@ -64,15 +64,6 @@ func TestGetAmazonPageInfo(t *testing.T) {
 	if gotPageInfo.GetArtist() != expectedPageInfo.GetArtist() {
 		t.Errorf("output %s not equal to expected %s", gotPageInfo.GetArtist(), expectedPageInfo.GetArtist())
 	}
-
-	// remove numbers to account for varying price
-	/*
-		re := regexp.MustCompile(`\d`)
-		gotPrice := string(re.ReplaceAll([]byte(gotPageInfo.AmazonPrice), []byte("x")))
-		if gotPrice != "" && gotPrice != expectedPageInfo.AmazonPrice {
-			t.Errorf("output %s not equal to expected %s", gotPrice, expectedPageInfo.AmazonPrice)
-
-	*/
 }
 
 /*

@@ -14,10 +14,10 @@ import (
 type Record struct {
 	artist, album string
 	amazonUrl     string
-	amazonPrice   float64 // FIXME: Should not be using float64
+	amazonPrice   float32
 }
 
-func NewRecord(artist, album, url string, price float64) *Record {
+func NewRecord(artist, album, url string, price float32) *Record {
 	return &Record{
 		artist:      artist,
 		album:       album,
@@ -34,7 +34,7 @@ func (r *Record) GetAlbum() string {
 	return r.album
 }
 
-func (r *Record) GetPrice() float64 {
+func (r *Record) GetPrice() float32 {
 	return r.amazonPrice
 }
 

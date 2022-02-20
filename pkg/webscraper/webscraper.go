@@ -59,11 +59,11 @@ func parseArtist(s string) string {
 	return s[:indx]
 }
 
-func parsePrice(s string) float64 {
+func parsePrice(s string) float32 {
 	re := regexp.MustCompile(`[\d.]+`)
 	price_str := re.FindString(s)
 	flt, _ := strconv.ParseFloat(price_str, 32)
-	return flt
+	return float32(flt)
 }
 
 // Concurrently calls `getAmazonPageInfo` for a list of URLS.

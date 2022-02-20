@@ -1,3 +1,4 @@
+// api methods to read & write to localhost pg db.
 package postgres
 
 import (
@@ -145,10 +146,10 @@ func (pg *PgInstance) GetRecordID(rec *r.Record) (int, bool) {
 
 	var id int
 	if err := pg.db.QueryRow(existsQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err == sql.ErrNoRows {
-		log.Printf("%s not stored in 'records' table.", rec.GetAlbum())
+		// log.Printf("%s not stored in 'records' table.", rec.GetAlbum())
 		return 0, false
 	}
-	log.Printf("%s's id retrieved succesfully from 'records' table.", rec.GetAlbum())
+	// log.Printf("%s's id retrieved succesfully from 'records' table.", rec.GetAlbum())
 	return id, true
 }
 
@@ -162,10 +163,10 @@ func (pg *PgInstance) GetPriceID(recordID int, date time.Time) (int, bool) {
 
 	var id int
 	if err := pg.db.QueryRow(existsQuery, date, recordID).Scan(&id); err == sql.ErrNoRows {
-		log.Printf("Record ID %v not stored in 'prices' table.", recordID)
+		// log.Printf("Record ID %v not stored in 'prices' table.", recordID)
 		return 0, false
 	}
-	log.Printf("Record ID %v found at price id: %v", recordID, id)
+	// log.Printf("Record ID %v found at price id: %v", recordID, id)
 	return id, true
 }
 
@@ -187,7 +188,7 @@ func (pg *PgInstance) InsertRecordAllTables(rec *r.Record) int {
 			RETURNING ID;`
 
 		if err := pg.db.QueryRow(updateQuery, rec.GetPrice(), today, recordID).Scan(&priceID); err == sql.ErrNoRows {
-			log.Printf("%s: no price currently stored  'prices' table.", rec.GetAlbum())
+			// log.Printf("%s: no price currently stored  'prices' table.", rec.GetAlbum())
 			return priceID
 		}
 	}
@@ -234,7 +235,7 @@ func ReadQueryToRecords(rows *sql.Rows) r.Records {
 	var Records r.Records
 	for rows.Next() {
 		var art, alb string
-		var price float64
+		var price float32
 		if err := rows.Scan(&art, &alb, &price); err != nil {
 			break
 		}
