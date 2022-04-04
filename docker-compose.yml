@@ -9,7 +9,7 @@ services:
     depends_on:
       - database
     networks:
-      - learning
+      - webscraper_net
   database:
     image: postgres:latest
     environment:
@@ -23,9 +23,9 @@ services:
     volumes:
       - ./pg_data:/var/lib/postgres/data
     networks:
-      - learning
+      - webscraper_net
 volumes:
   pg_data:
 networks:
-  learning:
+  webscraper_net:
     driver: bridge
