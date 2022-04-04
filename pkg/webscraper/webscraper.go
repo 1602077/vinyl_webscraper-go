@@ -50,6 +50,12 @@ func getAmazonPageInfo(url string) (pageinfo *r.Record) {
 		)
 	})
 	c.Visit(url)
+
+	var emptyRecord *r.Record
+	if emptyRecord == pageinfo {
+		log.Fatal("`getAmazonPageInfo()` returned nil for all fields. Exceed call limit for session")
+	}
+
 	return
 }
 
