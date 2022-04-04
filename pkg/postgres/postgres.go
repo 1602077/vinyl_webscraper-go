@@ -70,7 +70,7 @@ func (pg *PgInstance) Connect() *PgInstance {
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("err: ping to database '%s' failed.", pg.config.dbname)
+		log.Fatalf("err: ping to database '%s' failed: %s", pg.config.dbname, err)
 	}
 
 	log.Printf("connection to database '%s' successfully opened.\n", pg.config.dbname)

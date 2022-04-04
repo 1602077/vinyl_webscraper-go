@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  go:
+    container_name: go-ws
+    tty: true
+    build: .
+    ports:
+      - 8000:8080
+    restart: on-failure:5
+    depends_on:
+      - postgresdb
+    networks:
+      - learning
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - DATABASE_HOST=${DB_HOST}
+    container_name: pg
+    ports:
+      - '1234:5432'
+    volumes:
+      - ./ws_pg_data:/var/lib/postgres/data
+    networks:
+      - learning
+volumes:
+  ws_pg_data:
+networks:
+  learning:
+    driver: bridge
