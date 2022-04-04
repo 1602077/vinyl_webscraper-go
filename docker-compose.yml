@@ -6,12 +6,11 @@ services:
     build: .
     ports:
       - 8000:8080
-    restart: on-failure:5
     depends_on:
-      - postgresdb
+      - database
     networks:
       - learning
-  postgres:
+  database:
     image: postgres:latest
     environment:
       - POSTGRES_USER=${DB_USER}
@@ -22,11 +21,11 @@ services:
     ports:
       - '1234:5432'
     volumes:
-      - ./ws_pg_data:/var/lib/postgres/data
+      - ./pg_data:/var/lib/postgres/data
     networks:
       - learning
 volumes:
-  ws_pg_data:
+  pg_data:
 networks:
   learning:
     driver: bridge
