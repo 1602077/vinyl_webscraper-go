@@ -1,4 +1,12 @@
 version: "3.9"
+volumes:
+  pg_data:
+    name: ${VOLUME_ID}
+
+networks:
+  net_ws:
+    driver: bridge
+
 services:
   go:
     container_name: go-ws
@@ -9,7 +17,7 @@ services:
     depends_on:
       - database
     networks:
-      - webscraper_net
+      - net_ws
   database:
     image: postgres:latest
     environment:
@@ -21,11 +29,6 @@ services:
     ports:
       - '1234:5432'
     volumes:
-      - ./pg_data:/var/lib/postgres/data
+      - pg_data:/var/lib/postgres/data
     networks:
-      - webscraper_net
-volumes:
-  pg_data:
-networks:
-  webscraper_net:
-    driver: bridge
+      - net_ws
