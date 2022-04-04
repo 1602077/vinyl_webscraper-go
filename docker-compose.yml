@@ -18,14 +18,14 @@ services:
       - database
     networks:
       - net_ws
-  database:
+  pg_docker:
+    container_name: pg
     image: postgres:latest
     environment:
+      - DATABASE_HOST=${DB_HOST}
+      - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
-      - DATABASE_HOST=${DB_HOST}
-    container_name: pg
     ports:
       - '1234:5432'
     volumes:

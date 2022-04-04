@@ -9,7 +9,7 @@ import (
 	ws "github.com/1602077/webscraper/pkg/webscraper"
 )
 
-const DBNAME = "postgres"
+const DBNAME = "webscraper"
 
 func main() {
 	dir, err := os.Getwd()

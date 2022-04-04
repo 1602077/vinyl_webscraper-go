@@ -5,6 +5,6 @@
 ## Running in Docker
 
 1. `docker compose up`
-2. `docker exec -it pg psql -U postgres` - opens psql in container
-3. `docker exec -i pg psql -U postgres < data/schema.sql` - create tables in container on first run
+2. `docker exec -it pg psql -d webscraper -U root` - opens psql in container
+3. `docker exec -i  pg psql -d webscraper -U root < data/schema.sql` - create tables in container on first run
 
