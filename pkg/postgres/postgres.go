@@ -8,11 +8,22 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	r "github.com/1602077/webscraper/pkg/records"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
+
+// GetEnVar uses godot to read env variables from a .env file
+func GetEnVar(key string) string {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
+	}
+	return os.Getenv(key)
+}
 
 type PgConfig struct {
 	host, user, password, dbname string
@@ -20,11 +31,16 @@ type PgConfig struct {
 }
 
 func NewPgConfig(dbname string) *PgConfig {
+	port, err := strconv.Atoi(GetEnVar("DB_PORT"))
+	if err != nil {
+		log.Fatalf("Port conversion to int failed: %s", err)
+	}
+
 	return &PgConfig{
-		host:     "localhost",
-		port:     5432,
-		user:     os.Getenv("DBUSER"),
-		password: os.Getenv("DBPASS"),
+		host:     GetEnVar("DB_HOST"),
+		port:     port,
+		user:     GetEnVar("DB_USER"),
+		password: GetEnVar("DB_PASSWORD"),
 		dbname:   dbname,
 	}
 }
