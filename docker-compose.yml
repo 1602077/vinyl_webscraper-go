@@ -1,12 +1,4 @@
 version: "3.9"
-volumes:
-  pg_data:
-    name: ${VOLUME_ID}
-
-networks:
-  net_ws:
-    driver: bridge
-
 services:
   go:
     container_name: go-ws
@@ -26,9 +18,16 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - PGDATA=/var/lib/postgresql/data/pg_data/
     ports:
       - '1234:5432'
     volumes:
-      - pg_data:/var/lib/postgres/data
+      - pg_data:/var/lib/postgresql/data
     networks:
       - net_ws
+volumes:
+  pg_data:
+    name: ${VOLUME_ID}
+networks:
+  net_ws:
+    driver: bridge
