@@ -204,9 +204,10 @@ func (pg *PgInstance) InsertRecordAllTables(rec *r.Record) int {
 			RETURNING ID;`
 
 		if err := pg.db.QueryRow(updateQuery, rec.GetPrice(), today, recordID).Scan(&priceID); err == sql.ErrNoRows {
-			// log.Printf("%s: no price currently stored  'prices' table.", rec.GetAlbum())
 			return priceID
 		}
+		log.Printf("%s: updated in db.", rec.GetAlbum())
+		return priceID
 	}
 
 	insertQuery := `
