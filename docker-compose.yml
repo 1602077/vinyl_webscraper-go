@@ -12,7 +12,7 @@ services:
       - net_ws
   pg_docker:
     container_name: pg
-    image: postgres:latest
+    image: postgres:alpine
     environment:
       - DATABASE_HOST=${DB_HOST}
       - POSTGRES_DB=${DB_NAME}
