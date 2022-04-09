@@ -9,7 +9,7 @@ import (
 	ws "github.com/1602077/webscraper/pkg/webscraper"
 )
 
-const DBNAME = "webscraper"
+const ENV_FILEPATH = ".env"
 
 func main() {
 	dir, err := os.Getwd()
@@ -22,7 +22,7 @@ func main() {
 	var currPrices r.Records
 	currPrices = ws.GetRecords(urls)
 
-	pg := db.NewPostgresCli(DBNAME).Connect()
+	pg := db.NewPostgresCli(ENV_FILEPATH).Connect()
 	for _, rec := range currPrices {
 		pg.InsertRecordAllTables(rec)
 	}

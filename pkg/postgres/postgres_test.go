@@ -8,8 +8,10 @@ import (
 	r "github.com/1602077/webscraper/pkg/records"
 )
 
+var ENV_FILEPATH string = "../../.env.testing"
+
 func TestQueryRecordAllRows(t *testing.T) {
-	pg := NewPostgresCli(DBNAME).
+	pg := NewPostgresCli(ENV_FILEPATH).
 		Connect().
 		wipe().
 		insertTestData()
@@ -22,7 +24,7 @@ func TestQueryRecordAllRows(t *testing.T) {
 }
 
 func TestReadQueryToRecord(t *testing.T) {
-	pg := NewPostgresCli(DBNAME).
+	pg := NewPostgresCli(ENV_FILEPATH).
 		Connect().
 		wipe().
 		insertTestData()
@@ -43,7 +45,7 @@ func TestReadQueryToRecord(t *testing.T) {
 }
 
 func TestInsertRecord(t *testing.T) {
-	pg := NewPostgresCli(DBNAME).
+	pg := NewPostgresCli(ENV_FILEPATH).
 		Connect().
 		wipe()
 
@@ -81,7 +83,7 @@ var tests = []struct {
 }
 
 func TestGetRecordID(t *testing.T) {
-	pg := NewPostgresCli(DBNAME).
+	pg := NewPostgresCli(ENV_FILEPATH).
 		Connect().
 		wipe()
 
@@ -102,7 +104,7 @@ func TestGetRecordID(t *testing.T) {
 
 /*
 func TestInsertRecordPricing(t *testing.T) {
-	pg := NewPostgresCli(DBNAME).
+	pg := NewPostgresCli(ENV_FILEPATH).
 		Connect().
 		wipe().
 		insertTestData()

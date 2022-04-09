@@ -16,7 +16,7 @@ func TestRecordInsertIntoDatabase(t *testing.T) {
 		r.NewRecord("Diana Ross", "Diana", "", float32(10)),
 	}
 
-	pg := NewPostgresCli("dev").Connect().wipe()
+	pg := NewPostgresCli(ENV_FILEPATH).Connect().wipe()
 	for _, rec := range insertRec {
 		pg.InsertRecordAllTables(rec)
 	}

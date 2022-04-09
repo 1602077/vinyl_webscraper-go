@@ -16,46 +16,42 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// GetEnVar uses godot to read env variables from a .env file
-func GetEnVar(key string) string {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
-	}
-	return os.Getenv(key)
-}
-
 type PgConfig struct {
 	host, user, password, dbname string
 	port                         int
 }
-
-func NewPgConfig(dbname string) *PgConfig {
-	port, err := strconv.Atoi(GetEnVar("DB_PORT"))
-	if err != nil {
-		log.Fatalf("Port conversion to int failed: %s", err)
-	}
-
-	return &PgConfig{
-		host:     GetEnVar("DB_HOST"),
-		port:     port,
-		user:     GetEnVar("DB_USER"),
-		password: GetEnVar("DB_PASSWORD"),
-		dbname:   dbname,
-	}
-}
-
-const DBNAME = "dev"
 
 type PgInstance struct {
 	config *PgConfig
 	db     *sql.DB
 }
 
-func NewPostgresCli(dbname string) *PgInstance {
-	return &PgInstance{
-		config: NewPgConfig(dbname),
+// NewPostgres Cli creates a PgInstance containing conenction details
+// for pg db as specified by a .env file
+func NewPostgresCli(filepath string) *PgInstance {
+	port, err := strconv.Atoi(GetEnVar(filepath, "DB_PORT"))
+	if err != nil {
+		log.Fatalf("Port conversion to int failed: %s", err)
 	}
+
+	return &PgInstance{
+		config: &PgConfig{
+			host:     GetEnVar(filepath, "DB_HOST"),
+			port:     port,
+			user:     GetEnVar(filepath, "DB_USER"),
+			password: GetEnVar(filepath, "DB_PASSWORD"),
+			dbname:   GetEnVar(filepath, "DB_NAME"),
+		},
+	}
+}
+
+// GetEnVar uses godot to read env variables from a .env file
+func GetEnVar(filepath, key string) string {
+	err := godotenv.Load(filepath)
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
+	}
+	return os.Getenv(key)
 }
 
 // Opens a connection to database specified by config field
