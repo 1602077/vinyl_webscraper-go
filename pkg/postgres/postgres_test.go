@@ -102,7 +102,6 @@ func TestGetRecordID(t *testing.T) {
 	}
 }
 
-/*
 func TestInsertRecordPricing(t *testing.T) {
 	pg := NewPostgresCli(ENV_FILEPATH).
 		Connect().
@@ -144,4 +143,3 @@ func TestInsertRecordPricing(t *testing.T) {
 			}
 		})
 }
-*/

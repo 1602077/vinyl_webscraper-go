@@ -1,57 +1,50 @@
 package records
 
 import (
-	"log"
+	"reflect"
 	"testing"
 )
+
+var WKM = NewRecord("Tom Misch", "What Kinda Music", "", float32(30))
+var LF = NewRecord("Jorja Smith", "Lost & Found", "", float32(100))
+var NWBD = NewRecord("Loyle Carner", "Not Waving, But Drowning", "", float32(25))
 
 func TestGetRecordMethods(t *testing.T) {
 	artist, album, price := "tom misch", "geography", float32(25)
 	rec := NewRecord(artist, album, "", price)
 
 	if rec.GetArtist() != artist {
-		log.Fatalf("get artist method failed")
+		t.Fatalf("GetArtist() = %s, Expected: %s", rec.GetArtist(), artist)
 	}
 	if rec.GetAlbum() != album {
-		log.Fatalf("get album method failed")
+		t.Fatalf("GetAlbum() = %s, Expected: %s", rec.GetAlbum(), album)
 	}
 	if rec.GetPrice() != price {
-		log.Fatalf("get price method failed")
+		t.Fatalf("GetPrice() = %v, Expected: %v", rec.GetPrice(), price)
 	}
 }
 
-var WKM = NewRecord("Tom Misch", "What Kinda Music", "", float32(30))
-var LF = NewRecord("Jorja Smith", "Lost & Found", "", float32(22.75))
-var NWBD = NewRecord("Loyle Carner", "Not Waving, But Drowning", "", float32(25))
+func TestSort(t *testing.T) {
+	var records = Records{WKM, LF, NWBD}
 
-func TestMergeRecordHistories(t *testing.T) {
-	t.Run("it merges a RecordInstance with Record History", func(t *testing.T) {
-		var TestRecords = Records{WKM, LF}
-		var rh = RecordHistory{RecordInstance{Date: "yesterday", Records: TestRecords}}
-		var ri = RecordInstance{Date: "today", Records: TestRecords}
+	var tests = []struct {
+		name       string
+		sortMethod func(i *Record, j *Record) bool
+		expected   Records
+	}{
+		{"ByArtist", ByArtist, Records{LF, NWBD, WKM}},
+		{"ByAlbum", ByAlbum, Records{LF, NWBD, WKM}},
+		{"ByPrice", ByPrice, Records{NWBD, WKM, LF}},
+	}
 
-		rh.MergeRecordHistories(ri)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sorted := records
+			sorted.Sort(tt.sortMethod)
 
-		got := len(rh)
-		want := 2
-
-		if got != want {
-			t.Errorf("expected length %v, got %v", want, got)
-		}
-	})
-
-	t.Run("it replaces duplicate date with RecordInstance being merged in", func(t *testing.T) {
-		var rh = RecordHistory{RecordInstance{Date: "today", Records: Records{WKM, LF}}}
-		var ri = RecordInstance{Date: "today", Records: Records{NWBD}}
-
-		rh.MergeRecordHistories(ri)
-
-		if len(rh) != 1 {
-			t.Errorf("expected 1 date of data, got %v", len(rh))
-		}
-
-		if len(ri.Records) != 1 {
-			t.Errorf("expected 1 record in MergedRecordHistory, got %v", len(ri.Records))
-		}
-	})
+			if !reflect.DeepEqual(sorted, tt.expected) {
+				t.Fatalf("%s failed\nExpected: %v, Got: %v", tt.name, tt.expected, sorted)
+			}
+		})
+	}
 }

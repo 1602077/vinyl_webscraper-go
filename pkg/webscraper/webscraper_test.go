@@ -2,6 +2,9 @@ package webscraper
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"reflect"
 	"strconv"
 	"testing"
 
@@ -66,12 +69,17 @@ func TestGetAmazonPageInfo(t *testing.T) {
 	}
 }
 
-/*
 // Tests that concurrent implimentation matches single threaded version
 func TestGetRecords(t *testing.T) {
-	var sing, parr Records
-	urls := readURLs("./data/input.txt")
-	parr = getRecords(urls)
+	var sing, parr r.Records
+
+	err := os.Chdir("../../data/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	urls := ReadURLs("./input.txt")
+
+	parr = GetRecords(urls)
 	for _, u := range urls {
 		sing = append(
 			sing,
@@ -82,4 +90,3 @@ func TestGetRecords(t *testing.T) {
 		t.Errorf("non-concurrent and concurrent outputs do not match.\nexpected: %v.\ngot:%v.", sing, parr)
 	}
 }
-*/

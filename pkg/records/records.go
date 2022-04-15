@@ -2,10 +2,7 @@
 package records
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"text/tabwriter"
@@ -70,100 +67,3 @@ func ByPrice(i, j *Record) bool  { return i.amazonPrice < j.amazonPrice }
 func (r Records) Sort(ByField func(*Record, *Record) bool) {
 	sort.Sort(RecordsSort{r, ByField})
 }
-
-// -------------------------   DEPRACATED    -------------------------
-
-// Deprecated: Store of record wishlist data at a current instance in time.
-type RecordInstance struct {
-	Date    string
-	Records Records
-}
-
-// Deprecated
-type RecordHistory []RecordInstance
-
-// Deprecated
-func (rh *RecordHistory) MergeRecordHistories(ri RecordInstance) {
-	var mergedRH RecordHistory
-	currDate := ri.Date
-	for _, r := range *rh {
-		// Filter out recordInstance for date already exists
-		if r.Date == currDate {
-			continue
-		}
-		mergedRH = append(mergedRH, r)
-	}
-	mergedRH = append(mergedRH, ri)
-	*rh = mergedRH
-}
-
-// Deprecated
-func (rh RecordHistory) Sort(ByField func(*Record, *Record) bool) {
-	for _, v := range rh {
-		r := v.Records
-		r.Sort(ByField)
-	}
-}
-
-// Deprecated: Write byte slice to file, converting all chars back to utf-8
-func WriteToFile(j []byte, filename string) {
-	j = bytes.Replace(j, []byte("\\u003c"), []byte("<"), -1)
-	j = bytes.Replace(j, []byte("\\u003e"), []byte(">"), -1)
-	j = bytes.Replace(j, []byte("\\u0026"), []byte("&"), -1)
-
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	n, err := f.Write(j)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("`%s` written (%v bytes)", filename, n)
-}
-
-// Deprecated: Reads in JSON data to RecordHistory struct
-func ReadFile(filename string, rh RecordHistory) (RecordHistory, error) {
-	f, ReadErr := os.ReadFile(filename)
-	if ReadErr != nil {
-		return nil, ReadErr
-	}
-	err := json.Unmarshal(f, &rh)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return rh, nil
-}
-
-// Main Function for Deprecated persistence methods, now use pg instead
-/*
-func main() {
-	urls := ws.ReadURLs("../data/input.txt")
-
-	// Get current price of records in wishlist
-	var currPrices r.Records
-	currPrices = ws.GetRecords(urls)
-	currPrices.Sort(r.ByArtist)
-	currPrices.PrintRecords()
-
-	bs, _ := json.MarshalIndent(currPrices, "", " ")
-	r.WriteToFile(bs, "../data/currentPrices.JSON")
-
-	// Read in historical pricing and merge with current
-	var histPrices r.RecordHistory
-	histPrices, ReadErr := r.ReadFile("../data/allPrices.JSON", histPrices)
-	if ReadErr != nil {
-		log.Print("`../data/allPrices.JSON` does not exist; writing to new file")
-	}
-
-	today := time.Now().Format("2006-01-02")
-
-	histPrices.MergeRecordHistories(r.RecordInstance{Date: today, Records: currPrices})
-	histPrices.Sort(r.ByArtist)
-
-	bs, _ = json.MarshalIndent(histPrices, "", " ")
-	r.WriteToFile(bs, "../data/allPrices.JSON")
-}
-*/
