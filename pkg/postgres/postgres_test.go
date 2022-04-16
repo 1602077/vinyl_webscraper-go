@@ -46,7 +46,7 @@ func (pg *PgInstance) GetAllRecords() *sql.Rows {
 }
 
 // Runs "SELECT * FROM prices"
-func (pg *PgInstance) GetAllRecordPrices() *sql.Rows {
+func (pg *PgInstance) GetAllPrices() *sql.Rows {
 	rows, err := pg.db.Query("SELECT * FROM prices;")
 	if err != nil {
 		log.Fatalf("err: QueryPriceAllRows() failed: %v", err)
@@ -126,7 +126,6 @@ func TestGetRecordID(t *testing.T) {
 		wipe()
 
 	pg.InsertRecord(recThatExists)
-	// pg.InsertRecordIntoRecordsTable(recThatExists)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -173,7 +172,7 @@ func TestInsertRecordPricing(t *testing.T) {
 
 			// two duplicate record writes so expect pricing table to have only 2 rows
 			var numRows int
-			rows := pg.GetAllRecordPrices()
+			rows := pg.GetAllPrices()
 			for rows.Next() {
 				numRows++
 			}

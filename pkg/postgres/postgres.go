@@ -125,7 +125,7 @@ func (pg *PgInstance) GetCurrentRecordPrices() *sql.Rows {
 	return rows
 }
 
-func (pg *PgInstance) GetRecordPrices(r *r.Record) map[string]float32 {
+func (pg *PgInstance) GetAllRecordPrices(r *r.Record) map[string]float32 {
 	rows, err := pg.db.Query(`
 		SELECT date, price
 		FROM prices
@@ -152,40 +152,22 @@ func (pg *PgInstance) GetRecordPrices(r *r.Record) map[string]float32 {
 	return prices
 }
 
-// Inserts a single record into 'records' table and returns it's id
-func (pg *PgInstance) InsertRecordIntoRecordsTable(rec *r.Record) int {
-	insertQuery := `
-		INSERT INTO
-			records (artist, album)
-		VALUES
-			($1, $2)
-		RETURNING ID;`
-
-	var recordID int
-	if err := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&recordID); err != nil {
-		log.Fatalf("err: InsertRecordIntoRecords() failed: %v.", err)
-	}
-	return recordID
-}
-
 // Checks if record exists in 'records' table and adds if not & then inserts into pricing table
-// FIXME: Adress commented block to allow for removal of InsertRecordIntaRecordsTable
 func (pg *PgInstance) InsertRecord(rec *r.Record) (int, int) {
 	recordID, ok := pg.GetRecordID(rec)
 	if !ok {
-		recordID = pg.InsertRecordIntoRecordsTable(rec)
+		insertQuery := `
+			INSERT INTO
+				records (artist, album)
+			VALUES
+				($1, $2)
+			RETURNING ID;`
 
-		// insertQuery := `
-		// 	INSERT INTO
-		// 		records (artist, album)
-		// 	VALUES
-		// 		($1, $2)
-		// 	RETURNING ID;`
-
-		// var recordID int
-		// if err := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&recordID); err != nil {
-		// 	log.Fatalf("err: InsertRecordIntoRecords() failed: %v.", err)
-		// }
+		var rID int
+		if err := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&rID); err != nil {
+			log.Fatalf("err: InsertRecordIntoRecords() failed: %v.", err)
+		}
+		recordID = rID
 	}
 
 	today := time.Now()

@@ -52,7 +52,7 @@ func TestGetRecordPrices(t *testing.T) {
 	pg.db.QueryRow(insert, day, p1, rID)
 	pg.db.QueryRow(insert, yesterday, p2, rID)
 
-	returned := pg.GetRecordPrices(rec)
+	returned := pg.GetAllRecordPrices(rec)
 	expected := map[string]float32{
 		day.Format("2006-11-02"):       p1,
 		yesterday.Format("2006-11-02"): p2,
