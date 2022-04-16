@@ -78,22 +78,6 @@ func (pg *PgInstance) Close() {
 	pg.db.Close()
 }
 
-// Inserts a single record into 'records' table and returns it's id
-func (pg *PgInstance) InsertRecordIntoRecords(rec *r.Record) int {
-	insertQuery := `
-		INSERT INTO
-			records (artist, album)
-		VALUES
-			($1, $2)
-		RETURNING ID;`
-
-	var id int
-	if err := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err != nil {
-		log.Fatalf("err: InsertRecordIntoRecords() failed: %v.", err)
-	}
-	return id
-}
-
 // Retrieves the id of a record from 'records' table
 func (pg *PgInstance) GetRecordID(rec *r.Record) (int, bool) {
 	existsQuery := `
@@ -102,12 +86,11 @@ func (pg *PgInstance) GetRecordID(rec *r.Record) (int, bool) {
 		WHERE artist = $1 AND album = $2
 		LIMIT 1;`
 
-	var id int
-	if err := pg.db.QueryRow(existsQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&id); err == sql.ErrNoRows {
+	var recordID int
+	if err := pg.db.QueryRow(existsQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&recordID); err == sql.ErrNoRows {
 		return 0, false
 	}
-	// log.Printf("%s's id retrieved succesfully from 'records' table.", rec.GetAlbum())
-	return id, true
+	return recordID, true
 }
 
 // Retrieves the id of a price row for a given record_id and date
@@ -118,55 +101,11 @@ func (pg *PgInstance) GetPriceID(recordID int, date time.Time) (int, bool) {
 		WHERE date = $1 AND record_id = $2
 		LIMIT 1;`
 
-	var id int
-	if err := pg.db.QueryRow(existsQuery, date, recordID).Scan(&id); err == sql.ErrNoRows {
+	var priceID int
+	if err := pg.db.QueryRow(existsQuery, date, recordID).Scan(&priceID); err == sql.ErrNoRows {
 		return 0, false
 	}
-	return id, true
-}
-
-// Checks if record exists in 'records' table and adds if not & then inserts into pricing table
-func (pg *PgInstance) InsertRecord(rec *r.Record) int {
-	recordID, ok := pg.GetRecordID(rec)
-	if !ok {
-		recordID = pg.InsertRecordIntoRecords(rec)
-	}
-
-	today := time.Now()
-	priceID, ok := pg.GetPriceID(recordID, today)
-	if ok {
-		updateQuery := `
-			UPDATE prices
-			SET price = $1
-			WHERE date = $2 AND record_id = $3
-			RETURNING ID;`
-
-		if err := pg.db.QueryRow(updateQuery, rec.GetPrice(), today, recordID).Scan(&priceID); err == sql.ErrNoRows {
-			return priceID
-		}
-		log.Printf("%s: updated in db.", rec.GetAlbum())
-		return priceID
-	}
-
-	insertQuery := `
-		INSERT INTO
-			prices (date, price, record_id)
-		VALUES
-			($1, $2, $3)
-		RETURNING ID;`
-
-	pg.db.QueryRow(insertQuery, today, rec.GetPrice(), recordID).Scan(&priceID)
-	log.Printf("%s: written to db.", rec.GetAlbum())
-	return priceID
-}
-
-// Runs "SELECT * FROM prices"
-func (pg *PgInstance) QueryPriceAllRows() *sql.Rows {
-	rows, err := pg.db.Query("SELECT * FROM prices;")
-	if err != nil {
-		log.Fatalf("err: QueryPriceAllRows() failed: %v", err)
-	}
-	return rows
+	return priceID, true
 }
 
 // Gets most recent prices of all records
@@ -211,6 +150,70 @@ func (pg *PgInstance) GetRecordPrices(r *r.Record) map[string]float32 {
 		prices[datestring] = price
 	}
 	return prices
+}
+
+// Inserts a single record into 'records' table and returns it's id
+func (pg *PgInstance) InsertRecordIntoRecordsTable(rec *r.Record) int {
+	insertQuery := `
+		INSERT INTO
+			records (artist, album)
+		VALUES
+			($1, $2)
+		RETURNING ID;`
+
+	var recordID int
+	if err := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&recordID); err != nil {
+		log.Fatalf("err: InsertRecordIntoRecords() failed: %v.", err)
+	}
+	return recordID
+}
+
+// Checks if record exists in 'records' table and adds if not & then inserts into pricing table
+// FIXME: Adress commented block to allow for removal of InsertRecordIntaRecordsTable
+func (pg *PgInstance) InsertRecord(rec *r.Record) (int, int) {
+	recordID, ok := pg.GetRecordID(rec)
+	if !ok {
+		recordID = pg.InsertRecordIntoRecordsTable(rec)
+
+		// insertQuery := `
+		// 	INSERT INTO
+		// 		records (artist, album)
+		// 	VALUES
+		// 		($1, $2)
+		// 	RETURNING ID;`
+
+		// var recordID int
+		// if err := pg.db.QueryRow(insertQuery, rec.GetArtist(), rec.GetAlbum()).Scan(&recordID); err != nil {
+		// 	log.Fatalf("err: InsertRecordIntoRecords() failed: %v.", err)
+		// }
+	}
+
+	today := time.Now()
+	priceID, ok := pg.GetPriceID(recordID, today)
+	if ok {
+		updateQuery := `
+			UPDATE prices
+			SET price = $1
+			WHERE date = $2 AND record_id = $3
+			RETURNING ID;`
+
+		if err := pg.db.QueryRow(updateQuery, rec.GetPrice(), today, recordID).Scan(&priceID); err == sql.ErrNoRows {
+			return recordID, priceID
+		}
+		log.Printf("%s: updated in db.", rec.GetAlbum())
+		return recordID, priceID
+	}
+
+	insertQuery := `
+		INSERT INTO
+			prices (date, price, record_id)
+		VALUES
+			($1, $2, $3)
+		RETURNING ID;`
+
+	pg.db.QueryRow(insertQuery, today, rec.GetPrice(), recordID).Scan(&priceID)
+	log.Printf("%s: written to db.", rec.GetAlbum())
+	return recordID, priceID
 }
 
 func ReadQueryToRecords(rows *sql.Rows) r.Records {

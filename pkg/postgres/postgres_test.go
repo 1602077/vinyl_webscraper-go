@@ -37,7 +37,7 @@ func (pg *PgInstance) insertTestData() *PgInstance {
 }
 
 // Runs "SELECT * FROM records"
-func (pg *PgInstance) QueryRecordAllRows() *sql.Rows {
+func (pg *PgInstance) GetAllRecords() *sql.Rows {
 	rows, err := pg.db.Query("SELECT * FROM records;")
 	if err != nil {
 		log.Fatalf("err: QueryRecordAllRows() failed: %v.", err)
@@ -45,8 +45,17 @@ func (pg *PgInstance) QueryRecordAllRows() *sql.Rows {
 	return rows
 }
 
+// Runs "SELECT * FROM prices"
+func (pg *PgInstance) GetAllRecordPrices() *sql.Rows {
+	rows, err := pg.db.Query("SELECT * FROM prices;")
+	if err != nil {
+		log.Fatalf("err: QueryPriceAllRows() failed: %v", err)
+	}
+	return rows
+}
+
 // Reads in the result of a db.Query(...) [*sql.Rows] to r.Records type
-func ReadPartialQueryToRecord(rows *sql.Rows) r.Records {
+func ReadRecordsTableQueryToRecord(rows *sql.Rows) r.Records {
 	var Records r.Records
 	for rows.Next() {
 		var id, art, alb string
@@ -69,23 +78,23 @@ func TestQueryRecordAllRows(t *testing.T) {
 		wipe().
 		insertTestData()
 
-	result := pg.QueryRecordAllRows()
+	result := pg.GetAllRecords()
 	defer result.Close()
 	if result == nil {
 		t.Errorf("query failed, returned nil.")
 	}
 }
 
-func TestReadQueryToRecord(t *testing.T) {
+func TestGetAllRecords(t *testing.T) {
 	pg := NewPostgresCli(ENV_FILEPATH).
 		Connect().
 		wipe().
 		insertTestData()
 
-	result := pg.QueryRecordAllRows()
+	result := pg.GetAllRecords()
 	defer result.Close()
 
-	Records := ReadPartialQueryToRecord(result)
+	Records := ReadRecordsTableQueryToRecord(result)
 
 	length := 0
 	for range Records {
@@ -116,7 +125,8 @@ func TestGetRecordID(t *testing.T) {
 		Connect().
 		wipe()
 
-	pg.InsertRecordIntoRecords(recThatExists)
+	pg.InsertRecord(recThatExists)
+	// pg.InsertRecordIntoRecordsTable(recThatExists)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -137,7 +147,7 @@ func TestInsertRecordPricing(t *testing.T) {
 		wipe().
 		insertTestData()
 
-	NumRecordRows := len(ReadPartialQueryToRecord(pg.QueryRecordAllRows()))
+	NumRecordRows := len(ReadRecordsTableQueryToRecord(pg.GetAllRecords()))
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -145,7 +155,7 @@ func TestInsertRecordPricing(t *testing.T) {
 				NumRecordRows++
 			}
 			pg.InsertRecord(tt.record)
-			CurrRows := len(ReadPartialQueryToRecord(pg.QueryRecordAllRows()))
+			CurrRows := len(ReadRecordsTableQueryToRecord(pg.GetAllRecords()))
 			// if record exists should not change number of rows
 			// else should increase number of rows by amount of records
 			if NumRecordRows != CurrRows {
@@ -163,7 +173,7 @@ func TestInsertRecordPricing(t *testing.T) {
 
 			// two duplicate record writes so expect pricing table to have only 2 rows
 			var numRows int
-			rows := pg.QueryPriceAllRows()
+			rows := pg.GetAllRecordPrices()
 			for rows.Next() {
 				numRows++
 			}

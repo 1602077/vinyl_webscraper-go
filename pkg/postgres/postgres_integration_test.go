@@ -42,7 +42,7 @@ func TestGetRecordPrices(t *testing.T) {
 	rec := r.NewRecord("Chaka Khan", "I feel for you", "", p1)
 
 	pg := NewPostgresCli(ENV_FILEPATH).Connect().wipe()
-	rID := pg.InsertRecordIntoRecords(rec) // Insert into `records` table
+	rID, _ := pg.InsertRecord(rec) // Insert into `records` table
 
 	insert := `
 		INSERT INTO
