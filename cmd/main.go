@@ -24,7 +24,7 @@ func main() {
 
 	pg := db.NewPostgresCli(ENV_FILEPATH).Connect()
 	for _, rec := range currPrices {
-		pg.InsertRecordAllTables(rec)
+		pg.InsertRecord(rec)
 	}
 	pg.PrintCurrentRecordPrices()
 	pg.Close()
