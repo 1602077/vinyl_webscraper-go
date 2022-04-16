@@ -48,3 +48,16 @@ func TestSort(t *testing.T) {
 		})
 	}
 }
+
+func TestPrintRecords(t *testing.T) {
+	records := Records{
+		WKM,
+		LF,
+		NWBD,
+	}
+	actual := records.PrintRecords()
+
+	if len(actual) != 258 {
+		t.Fatalf("Expected length of 258 for PrintRecords(), Got: %v", len(actual))
+	}
+}

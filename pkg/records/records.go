@@ -2,8 +2,8 @@
 package records
 
 import (
+	"bytes"
 	"fmt"
-	"os"
 	"sort"
 	"text/tabwriter"
 )
@@ -37,18 +37,21 @@ func (r *Record) GetPrice() float32 {
 
 type Records []*Record
 
-func (r Records) PrintRecords() {
+func (r Records) PrintRecords() string {
 	const format = "%v\t%v\t%v\n"
-	tw := new(tabwriter.Writer).Init(os.Stdout, 0, 8, 4, ' ', 0)
-	fmt.Println()
+
+	var b bytes.Buffer
+	tw := new(tabwriter.Writer).Init(&b, 0, 8, 4, ' ', 0)
+
 	fmt.Fprintf(tw, format, "ARTIST", "ALBUM", "CURRENT PRICE")
 	fmt.Fprintf(tw, format, "------", "-----", "-------------")
 	for _, rr := range r {
 		fmt.Fprintf(tw, format, rr.artist, rr.album, rr.amazonPrice)
 	}
 	tw.Flush()
-	fmt.Println()
-	fmt.Println()
+
+	fmt.Println(b.String())
+	return b.String()
 }
 
 type RecordsSort struct {
