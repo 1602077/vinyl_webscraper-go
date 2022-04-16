@@ -7,7 +7,7 @@ services:
     ports:
       - 8000:8080
     depends_on:
-      - database
+      - pg_docker
     networks:
       - net_ws
   pg_docker:
@@ -23,6 +23,7 @@ services:
       - '1234:5432'
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./data/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - net_ws
 volumes:
