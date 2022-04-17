@@ -22,7 +22,7 @@ func main() {
 	var currPrices r.Records
 	currPrices = ws.GetRecords(urls)
 
-	pg := db.NewPostgresCli(ENV_FILEPATH).Connect()
+	pg := db.GetPgInstance().Connect(ENV_FILEPATH)
 	for _, rec := range currPrices {
 		pg.InsertRecord(rec)
 	}

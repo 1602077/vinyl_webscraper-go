@@ -9,72 +9,35 @@ import (
 	"testing"
 
 	r "github.com/1602077/webscraper/pkg/records"
+	_ "github.com/1602077/webscraper/testing"
 )
 
-// Run command from '.sql' file on database.
-func (pg *PgInstance) executeFromSQLFile(filename string) {
-	cmd := exec.Command("psql", "-U", pg.config.user, "-h", pg.config.host, "-d", pg.config.dbname, "-a", "-f", filename)
+var TEST_ENV_FILEPATH string = ".env.testing"
+var EXAMPLE_ENV_FILEPATH string = ".env.example"
 
-	var out, stderr bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &out, &stderr
+func TestGetPgInstace(t *testing.T) {
+	pginstance1 := GetPgInstance()
+	if pginstance1 == nil {
+		t.Error("Expected pointer to singleton after calling GetPgInstance(), got nil")
+	}
 
-	err := cmd.Run()
-	if err != nil {
-		log.Fatalf("Error executing query. Command Output: %+v\n: %+v, %v", out.String(), stderr.String(), err)
+	pginstance2 := GetPgInstance()
+	if pginstance1 != pginstance2 {
+		t.Errorf("Expected same instance in pginstance2, but got a different one")
 	}
 }
 
-// Clears all data from tables in pg db
-func (pg *PgInstance) wipe() *PgInstance {
-	pg.executeFromSQLFile("../../data/wipeTables.sql")
-	return pg
-}
-
-// Insert sample data for testing
-func (pg *PgInstance) insertTestData() *PgInstance {
-	pg.executeFromSQLFile("../../data/testData.sql")
-	return pg
-}
-
-// Runs "SELECT * FROM records"
-func (pg *PgInstance) GetAllRecords() *sql.Rows {
-	rows, err := pg.db.Query("SELECT * FROM records;")
-	if err != nil {
-		log.Fatalf("err: QueryRecordAllRows() failed: %v.", err)
+func TestGetEnVar(t *testing.T) {
+	key, value := "EXAMPLE_KEY", "EXAMPLE_VALUE"
+	actual := GetEnVar(EXAMPLE_ENV_FILEPATH, key)
+	if actual != value {
+		t.Errorf("GetEnVar(%s): expected %s, actual %s", key, value, actual)
 	}
-	return rows
 }
-
-// Runs "SELECT * FROM prices"
-func (pg *PgInstance) GetAllPrices() *sql.Rows {
-	rows, err := pg.db.Query("SELECT * FROM prices;")
-	if err != nil {
-		log.Fatalf("err: QueryPriceAllRows() failed: %v", err)
-	}
-	return rows
-}
-
-// Reads in the result of a db.Query(...) [*sql.Rows] to r.Records type
-func ReadRecordsTableQueryToRecord(rows *sql.Rows) r.Records {
-	var Records r.Records
-	for rows.Next() {
-		var id, art, alb string
-		if err := rows.Scan(&id, &art, &alb); err != nil {
-			break
-		}
-		Records = append(Records, r.NewRecord(art, alb, "", 0))
-	}
-	if err := rows.Err(); err != nil {
-		fmt.Printf("error: query row read failed")
-	}
-	return Records
-}
-
-var ENV_FILEPATH string = "../../.env.testing"
 
 func TestQueryRecordAllRows(t *testing.T) {
-	pg := NewPostgresCli(ENV_FILEPATH).
-		Connect().
+	pg := GetPgInstance().
+		Connect(TEST_ENV_FILEPATH).
 		wipe().
 		insertTestData()
 
@@ -86,23 +49,17 @@ func TestQueryRecordAllRows(t *testing.T) {
 }
 
 func TestGetAllRecords(t *testing.T) {
-	pg := NewPostgresCli(ENV_FILEPATH).
-		Connect().
+	pg := GetPgInstance().
+		Connect(TEST_ENV_FILEPATH).
 		wipe().
 		insertTestData()
 
 	result := pg.GetAllRecords()
-	defer result.Close()
 
 	Records := ReadRecordsTableQueryToRecord(result)
 
-	length := 0
-	for range Records {
-		length++
-	}
-
-	if length != 3 {
-		t.Errorf("expected 3 rows to be returned, got %v", length)
+	if len(Records) != 3 {
+		t.Errorf("expected 3 rows to be returned, got %v", len(Records))
 	}
 }
 
@@ -121,8 +78,8 @@ var tests = []struct {
 }
 
 func TestGetRecordID(t *testing.T) {
-	pg := NewPostgresCli(ENV_FILEPATH).
-		Connect().
+	pg := GetPgInstance().
+		Connect(TEST_ENV_FILEPATH).
 		wipe()
 
 	pg.InsertRecord(recThatExists)
@@ -141,8 +98,8 @@ func TestGetRecordID(t *testing.T) {
 }
 
 func TestInsertRecordPricing(t *testing.T) {
-	pg := NewPostgresCli(ENV_FILEPATH).
-		Connect().
+	pg := GetPgInstance().
+		Connect(TEST_ENV_FILEPATH).
 		wipe().
 		insertTestData()
 
@@ -180,4 +137,67 @@ func TestInsertRecordPricing(t *testing.T) {
 				t.Errorf("err: expected 2 rows, got %v", numRows)
 			}
 		})
+}
+
+// Run command from '.sql' file on database.
+func (pg *PgInstance) executeFromSQLFile(envFilename, sqlFilename string) {
+	host := GetEnVar(envFilename, "DB_HOST")
+	user := GetEnVar(envFilename, "DB_USER")
+	dbname := GetEnVar(envFilename, "DB_NAME")
+
+	cmd := exec.Command("psql", "-U", user, "-h", host, "-d", dbname, "-a", "-f", sqlFilename)
+
+	var out, stderr bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &out, &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Error executing query. Command Output: %+v\n: %+v, %v", out.String(), stderr.String(), err)
+	}
+}
+
+// Clears all data from tables in pg db
+func (pg *PgInstance) wipe() *PgInstance {
+	pg.executeFromSQLFile(TEST_ENV_FILEPATH, "./data/wipeTables.sql")
+	return pg
+}
+
+// Insert sample data for testing
+func (pg *PgInstance) insertTestData() *PgInstance {
+	pg.executeFromSQLFile(TEST_ENV_FILEPATH, "./data/testData.sql")
+	return pg
+}
+
+// Runs "SELECT * FROM records"
+func (pg *PgInstance) GetAllRecords() *sql.Rows {
+	rows, err := pg.db.Query("SELECT * FROM records;")
+	if err != nil {
+		log.Fatalf("err: QueryRecordAllRows() failed: %v.", err)
+	}
+	return rows
+}
+
+// Runs "SELECT * FROM prices"
+func (pg *PgInstance) GetAllPrices() *sql.Rows {
+	rows, err := pg.db.Query("SELECT * FROM prices;")
+	if err != nil {
+		log.Fatalf("err: QueryPriceAllRows() failed: %v", err)
+	}
+	return rows
+}
+
+// Reads in the result of a db.Query(...) [*sql.Rows] to r.Records type
+func ReadRecordsTableQueryToRecord(rows *sql.Rows) r.Records {
+	var Records r.Records
+	for rows.Next() {
+		var id, art, alb string
+		if err := rows.Scan(&id, &art, &alb); err != nil {
+			break
+		}
+		Records = append(Records, r.NewRecord(art, alb, "", 0))
+	}
+	if err := rows.Err(); err != nil {
+		fmt.Printf("error: query row read failed")
+	}
+	return Records
 }

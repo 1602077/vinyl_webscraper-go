@@ -2,13 +2,12 @@ package webscraper
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"reflect"
 	"strconv"
 	"testing"
 
 	r "github.com/1602077/webscraper/pkg/records"
+	_ "github.com/1602077/webscraper/testing"
 )
 
 func TestArtistParse(t *testing.T) {
@@ -71,14 +70,9 @@ func TestGetAmazonPageInfo(t *testing.T) {
 
 // Tests that concurrent implimentation matches single threaded version
 func TestGetRecords(t *testing.T) {
+	urls := ReadURLs("./data/input.txt")
+
 	var sing, parr r.Records
-
-	err := os.Chdir("../../data/")
-	if err != nil {
-		log.Fatal(err)
-	}
-	urls := ReadURLs("./input.txt")
-
 	parr = GetRecords(urls)
 	for _, u := range urls {
 		sing = append(

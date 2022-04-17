@@ -14,33 +14,18 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type PgConfig struct {
-	host, user, password, dbname string
-	port                         int
-}
-
 type PgInstance struct {
-	db     *sql.DB
-	config *PgConfig
+	db *sql.DB
 }
 
-// NewPostgres Cli creates a PgInstance containing conenction details
-// for pg db as specified by a .env file
-func NewPostgresCli(filepath string) *PgInstance {
-	port, err := strconv.Atoi(GetEnVar(filepath, "DB_PORT"))
-	if err != nil {
-		log.Fatalf("Port conversion to int failed: %s", err)
-	}
+var pginstance *PgInstance
 
-	return &PgInstance{
-		config: &PgConfig{
-			host:     GetEnVar(filepath, "DB_HOST"),
-			port:     port,
-			user:     GetEnVar(filepath, "DB_USER"),
-			password: GetEnVar(filepath, "DB_PASSWORD"),
-			dbname:   GetEnVar(filepath, "DB_NAME"),
-		},
+// NewPgInstace() is a factory function for creating a singleton PgInstance
+func GetPgInstance() *PgInstance {
+	if pginstance == nil {
+		pginstance = new(PgInstance)
 	}
+	return pginstance
 }
 
 // GetEnVar uses godot to read env variables from a .env file
@@ -52,30 +37,40 @@ func GetEnVar(filepath, key string) string {
 	return os.Getenv(key)
 }
 
-// Opens a connection to database specified by config field
-func (pg *PgInstance) Connect() *PgInstance {
+// Opens a connection to database specified by .env file
+func (pg *PgInstance) Connect(filepath string) *PgInstance {
+
+	host := GetEnVar(filepath, "DB_HOST")
+	port, err := strconv.Atoi(GetEnVar(filepath, "DB_PORT"))
+	if err != nil {
+		log.Fatalf("Connect() failed: Port convervsion failed: %v\n", err)
+	}
+	user := GetEnVar(filepath, "DB_USER")
+	pwd := GetEnVar(filepath, "DB_PASSWORD")
+	dbname := GetEnVar(filepath, "DB_NAME")
+
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		pg.config.host, pg.config.port, pg.config.user, pg.config.password, pg.config.dbname)
+		host, port, user, pwd, dbname)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		log.Fatalf("err: opening connection to database '%s' failed.", pg.config.dbname)
+		log.Fatalf("err: opening connection to database '%s' failed.", dbname)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("err: ping to database '%s' failed: %s", pg.config.dbname, err)
+		log.Fatalf("err: ping to database '%s' failed: %s", dbname, err)
 	}
 
-	log.Printf("connection to database '%s' successfully opened.\n", pg.config.dbname)
+	log.Printf("connection to database '%s' successfully opened.\n", dbname)
 	pg.db = db
 	return pg
 }
 
 // Closes connection to database
 func (pg *PgInstance) Close() {
-	log.Printf("closing connection to database '%s'.", pg.config.dbname)
 	pg.db.Close()
+	log.Print("closing to database closed.")
 }
 
 // Retrieves the id of a record from 'records' table
