@@ -1,7 +1,4 @@
-*.JSON
-*.txt
 .env
 .env.testing
-TODO.md
 cover.html
 cover.out

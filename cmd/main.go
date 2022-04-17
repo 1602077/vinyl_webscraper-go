@@ -17,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	urls := ws.ReadURLs(dir + "/data/input.txt")
+	urls := ws.ReadURLs(dir + "/input.txt")
 
 	var currPrices r.Records
 	currPrices = ws.GetRecords(urls)

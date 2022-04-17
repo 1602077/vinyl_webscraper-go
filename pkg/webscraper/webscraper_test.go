@@ -70,7 +70,7 @@ func TestGetAmazonPageInfo(t *testing.T) {
 
 // Tests that concurrent implimentation matches single threaded version
 func TestGetRecords(t *testing.T) {
-	urls := ReadURLs("./data/input.txt")
+	urls := ReadURLs("./input.txt")
 
 	var sing, parr r.Records
 	parr = GetRecords(urls)
