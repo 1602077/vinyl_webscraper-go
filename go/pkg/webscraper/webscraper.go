@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	r "github.com/1602077/webscraper/pkg/records"
+	r "github.com/1602077/webscraper/go/pkg/records"
 	"github.com/gocolly/colly"
 )
 

@@ -5,8 +5,7 @@ import (
 	"testing"
 	"time"
 
-	r "github.com/1602077/webscraper/pkg/records"
-	_ "github.com/1602077/webscraper/testing"
+	r "github.com/1602077/webscraper/go/pkg/records"
 )
 
 // Tests integration between records and postgres pkgs to confirm that records

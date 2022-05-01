@@ -1,9 +1,9 @@
 package main
 
 import (
-	db "github.com/1602077/webscraper/pkg/postgres"
-	r "github.com/1602077/webscraper/pkg/records"
-	ws "github.com/1602077/webscraper/pkg/webscraper"
+	db "github.com/1602077/webscraper/go/pkg/postgres"
+	r "github.com/1602077/webscraper/go/pkg/records"
+	ws "github.com/1602077/webscraper/go/pkg/webscraper"
 )
 
 const ENV_FILEPATH = "../.env"

@@ -8,12 +8,12 @@ import (
 	"os/exec"
 	"testing"
 
-	r "github.com/1602077/webscraper/pkg/records"
-	_ "github.com/1602077/webscraper/testing"
+	r "github.com/1602077/webscraper/go/pkg/records"
+	_ "github.com/1602077/webscraper/go/testing"
 )
 
-var TEST_ENV_FILEPATH string = ".env.testing"
-var EXAMPLE_ENV_FILEPATH string = ".env.example"
+var TEST_ENV_FILEPATH string = "../.env.testing"
+var EXAMPLE_ENV_FILEPATH string = "../.env.example"
 
 func TestGetPgInstace(t *testing.T) {
 	pginstance1 := GetPgInstance()
@@ -144,8 +144,9 @@ func (pg *PgInstance) executeFromSQLFile(envFilename, sqlFilename string) {
 	host := GetEnVar(envFilename, "DB_HOST")
 	user := GetEnVar(envFilename, "DB_USER")
 	dbname := GetEnVar(envFilename, "DB_NAME")
+	wd := GetEnVar(envFilename, "WORKDIR")
 
-	cmd := exec.Command("psql", "-U", user, "-h", host, "-d", dbname, "-a", "-f", sqlFilename)
+	cmd := exec.Command("psql", "-U", user, "-h", host, "-d", dbname, "-a", "-f", wd+sqlFilename)
 
 	var out, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &out, &stderr
@@ -158,13 +159,13 @@ func (pg *PgInstance) executeFromSQLFile(envFilename, sqlFilename string) {
 
 // Clears all data from tables in pg db
 func (pg *PgInstance) wipe() *PgInstance {
-	pg.executeFromSQLFile(TEST_ENV_FILEPATH, "./data/wipeTables.sql")
+	pg.executeFromSQLFile(TEST_ENV_FILEPATH, "/sql/wipeTables.sql")
 	return pg
 }
 
 // Insert sample data for testing
 func (pg *PgInstance) insertTestData() *PgInstance {
-	pg.executeFromSQLFile(TEST_ENV_FILEPATH, "./data/testData.sql")
+	pg.executeFromSQLFile(TEST_ENV_FILEPATH, "/sql/testData.sql")
 	return pg
 }
 

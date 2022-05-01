@@ -2,8 +2,8 @@ FROM golang:1.18 as builder
 WORKDIR /app
 COPY go/go.mod go/go.sum ./
 RUN go mod download && go mod verify
-COPY go/ .
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo ./cmd/main.go
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo ./go/cmd/main.go
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
