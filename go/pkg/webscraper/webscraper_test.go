@@ -6,9 +6,12 @@ import (
 	"strconv"
 	"testing"
 
-	r "github.com/1602077/webscraper/pkg/records"
-	_ "github.com/1602077/webscraper/testing"
+	db "github.com/1602077/webscraper/go/pkg/postgres"
+	r "github.com/1602077/webscraper/go/pkg/records"
+	_ "github.com/1602077/webscraper/go/testing"
 )
+
+var ENV_FILEPATH string = "../.env.testing"
 
 func TestArtistParse(t *testing.T) {
 	tests := []struct{ str, name string }{
@@ -70,7 +73,8 @@ func TestGetAmazonPageInfo(t *testing.T) {
 
 // Tests that concurrent implimentation matches single threaded version
 func TestGetRecords(t *testing.T) {
-	urls := ReadURLs("./input.txt")
+	wd := db.GetEnVar(ENV_FILEPATH, "WORKDIR")
+	urls := ReadURLs(wd + "/input.txt")
 
 	var sing, parr r.Records
 	parr = GetRecords(urls)

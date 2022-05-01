@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	r "github.com/1602077/webscraper/pkg/records"
+	r "github.com/1602077/webscraper/go/pkg/records"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -32,7 +32,7 @@ func GetPgInstance() *PgInstance {
 func GetEnVar(filepath, key string) string {
 	err := godotenv.Load(filepath)
 	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+		log.Fatalf("error loading .env file: %s", err)
 	}
 	return os.Getenv(key)
 }
