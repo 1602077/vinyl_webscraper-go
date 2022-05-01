@@ -1,8 +1,8 @@
 FROM golang:1.18 as builder
 WORKDIR /app
-COPY go.mod go.sum ./
+COPY go/go.mod go/go.sum ./
 RUN go mod download && go mod verify
-COPY . .
+COPY go/ .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo ./cmd/main.go
 
 FROM alpine:latest
