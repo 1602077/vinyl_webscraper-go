@@ -70,7 +70,7 @@ func (pg *PgInstance) Connect(filepath string) *PgInstance {
 // Closes connection to database
 func (pg *PgInstance) Close() {
 	pg.db.Close()
-	log.Print("closing to database closed.")
+	log.Print("connection to database closed.")
 }
 
 // Retrieves the id of a record from 'records' table
