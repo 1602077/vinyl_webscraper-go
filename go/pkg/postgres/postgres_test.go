@@ -36,10 +36,8 @@ func TestGetEnVar(t *testing.T) {
 }
 
 func TestQueryRecordAllRows(t *testing.T) {
-	pg := GetPgInstance().
-		Connect(TEST_ENV_FILEPATH).
-		wipe().
-		insertTestData()
+	setup()
+	defer teardown()
 
 	result := pg.GetAllRecords()
 	defer result.Close()
@@ -49,10 +47,8 @@ func TestQueryRecordAllRows(t *testing.T) {
 }
 
 func TestGetAllRecords(t *testing.T) {
-	pg := GetPgInstance().
-		Connect(TEST_ENV_FILEPATH).
-		wipe().
-		insertTestData()
+	setup()
+	defer teardown()
 
 	result := pg.GetAllRecords()
 
@@ -78,9 +74,8 @@ var tests = []struct {
 }
 
 func TestGetRecordID(t *testing.T) {
-	pg := GetPgInstance().
-		Connect(TEST_ENV_FILEPATH).
-		wipe()
+	setupNoData()
+	defer teardown()
 
 	pg.InsertRecord(recThatExists)
 
@@ -98,10 +93,8 @@ func TestGetRecordID(t *testing.T) {
 }
 
 func TestInsertRecordPricing(t *testing.T) {
-	pg := GetPgInstance().
-		Connect(TEST_ENV_FILEPATH).
-		wipe().
-		insertTestData()
+	setup()
+	defer teardown()
 
 	NumRecordRows := len(ReadRecordsTableQueryToRecord(pg.GetAllRecords()))
 
@@ -137,6 +130,28 @@ func TestInsertRecordPricing(t *testing.T) {
 				t.Errorf("err: expected 2 rows, got %v", numRows)
 			}
 		})
+}
+
+var pg *PgInstance
+
+// setup initialises testing environment with data
+func setup() {
+	pg = GetPgInstance().
+		Connect(TEST_ENV_FILEPATH).
+		wipe().
+		insertTestData()
+}
+
+// setupNoData intialises testing environment with empty sql tables
+func setupNoData() {
+	pg = GetPgInstance().
+		Connect(TEST_ENV_FILEPATH).
+		wipe()
+}
+
+// teardown wipes all tables in test db and closes pg connection
+func teardown() {
+	pg.Close()
 }
 
 // Run command from '.sql' file on database.

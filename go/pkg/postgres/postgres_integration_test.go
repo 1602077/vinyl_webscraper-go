@@ -11,13 +11,15 @@ import (
 // Tests integration between records and postgres pkgs to confirm that records
 // be inserted, read and return from db.
 func TestInsertRecord(t *testing.T) {
+	setupNoData()
+	defer teardown()
+
 	insertRec := r.Records{
 		r.NewRecord("Tom Misch", "What Kinda Music", "", float32(25)),
 		r.NewRecord("Bon Iver", "Bon Iver", "", float32(20)),
 		r.NewRecord("Diana Ross", "Diana", "", float32(10)),
 	}
 
-	pg := GetPgInstance().Connect(TEST_ENV_FILEPATH).wipe()
 	for _, rec := range insertRec {
 		pg.InsertRecord(rec)
 	}
@@ -28,17 +30,17 @@ func TestInsertRecord(t *testing.T) {
 	if !reflect.DeepEqual(insertRec, returnedRec) {
 		t.Errorf("Records inserted do not match that returned by read operation")
 	}
-	pg.wipe().Close()
 }
 
 // Creates a price history in prices table and then runs GetRecordPrices to
 // confirm inserted matches returned.
 func TestGetRecordPrices(t *testing.T) {
+	setupNoData()
+	defer teardown()
+
 	var p1, p2 float32 = 10.00, 11.50
 	day1, day2 := time.Now(), time.Date(2022, 04, 16, 0, 0, 0, 0, time.Local)
 	r1 := r.NewRecord("Chaka Khan", "I feel for you", "", p1)
-
-	pg := GetPgInstance().Connect(TEST_ENV_FILEPATH).wipe()
 
 	// Intial insert into records and prices
 	pg.InsertRecord(r1)
