@@ -35,7 +35,7 @@ func TestGetEnVar(t *testing.T) {
 	}
 }
 
-func TestQueryRecordAllRows(t *testing.T) {
+func TestGetAllRecordsQuery(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -46,7 +46,7 @@ func TestQueryRecordAllRows(t *testing.T) {
 	}
 }
 
-func TestGetAllRecords(t *testing.T) {
+func TestReadRecordsTableQueryToRecord(t *testing.T) {
 	setup()
 	defer teardown()
 

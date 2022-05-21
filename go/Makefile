@@ -16,7 +16,7 @@ run: # runs webscraper locally (requires local pg instance)
 	go run cmd/main.go
 
 test: # tests all packages recursively (requires local pg instance)
-	go test -v ./...
+	go test -v ./... | sed ''/PASS/s//$$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$$(printf "\033[31mFAIL\033[0m")/''
 
 clean: # cleans out legacy binaries
 	go clean
