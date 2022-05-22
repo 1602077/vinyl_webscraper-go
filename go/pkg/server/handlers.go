@@ -20,29 +20,7 @@ func init() {
 	fmt.Printf("runtime config filepath: '%s'\n", ENV_FILEPATH)
 }
 
-func RefreshRecordPrices(w http.ResponseWriter, r *http.Request) {
-	wd := postgres.GetEnVar(ENV_FILEPATH, "WORKDIR")
-	urls := webscraper.ReadURLs(wd + "/input.txt")
-
-	var currPrices records.Records
-	currPrices = webscraper.GetRecords(urls)
-
-	pg := postgres.GetPgInstance().Connect(ENV_FILEPATH)
-	defer pg.Close()
-
-	for _, rec := range currPrices {
-		pg.InsertRecord(rec)
-	}
-	pg.PrintCurrentRecordPrices()
-
-	t, err := template.ParseFiles("templates/records.html")
-	if err != nil {
-		log.Fatal("RefreshRecordPrices: ", err)
-	}
-	t.Execute(w, currPrices)
-}
-
-func DisplayRecordPrices(w http.ResponseWriter, r *http.Request) {
+func HomePage(w http.ResponseWriter, r *http.Request) {
 	pg := postgres.GetPgInstance().Connect(ENV_FILEPATH)
 	defer pg.Close()
 
@@ -54,4 +32,30 @@ func DisplayRecordPrices(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("DisplayRecordPrices: ", err)
 	}
 	t.Execute(w, recs)
+}
+
+func GetRecordPrices(w http.ResponseWriter, r *http.Request) {
+	wd := postgres.GetEnVar(ENV_FILEPATH, "WORKDIR")
+	// Get record price data
+	var currPrices records.Records
+	urls := webscraper.ReadURLs(wd + "/input.txt")
+	currPrices = webscraper.GetRecords(urls)
+
+	// Write to postgres
+	pg := postgres.GetPgInstance().Connect(ENV_FILEPATH)
+	defer pg.Close()
+	for _, rec := range currPrices {
+		pg.InsertRecord(rec)
+	}
+	pg.PrintCurrentRecordPrices()
+
+	cpJson, err := currPrices.MarshalJSON()
+	if err != nil {
+		log.Printf("GetRecordPrices: %s\n", err)
+	}
+
+	// Write header
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(cpJson)
 }

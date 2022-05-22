@@ -3,15 +3,48 @@ package records
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"log"
 	"sort"
 	"text/tabwriter"
 )
 
 type Record struct {
-	artist, album string
-	amazonUrl     string
-	amazonPrice   float32
+	artist      string
+	album       string
+	amazonUrl   string
+	amazonPrice float32
+}
+
+type RecordJSON struct {
+	Artist      string  `json:"artist"`
+	Album       string  `json:"album"`
+	AmazonUrl   string  `json:"amazon_url"`
+	AmazonPrice float32 `json:"amazon_price"`
+}
+
+// TODO: Write Unit Test
+func (r *Record) MarshalJSON() ([]byte, error) {
+	return json.Marshal(RecordJSON{
+		r.artist,
+		r.album,
+		r.amazonUrl,
+		r.amazonPrice,
+	})
+}
+
+// TODO: Write Unit Test
+func (r *Record) UnmarshalJSON(b []byte) error {
+	tmp := &RecordJSON{}
+	if err := json.Unmarshal(b, &tmp); err != nil {
+		return err
+	}
+	r.artist = tmp.Artist
+	r.album = tmp.Album
+	r.amazonUrl = tmp.AmazonUrl
+	r.amazonPrice = tmp.AmazonPrice
+	return nil
 }
 
 func NewRecord(artist, album, url string, price float32) *Record {
@@ -36,6 +69,45 @@ func (r *Record) GetPrice() float32 {
 }
 
 type Records []*Record
+
+// TODO: Write Unit Test
+func (r Records) MarshalJSON() ([]byte, error) {
+	var rJson []*RecordJSON
+	for _, rr := range r {
+		rJson = append(rJson, &RecordJSON{
+			Artist:      rr.artist,
+			Album:       rr.album,
+			AmazonUrl:   rr.amazonUrl,
+			AmazonPrice: rr.amazonPrice,
+		})
+	}
+
+	data, err := json.Marshal(rJson)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+// TODO: Write Unit Test
+func (r Records) UnmarshalJSON(b []byte) error {
+	var recordJsons []*RecordJSON
+	if err := json.Unmarshal(b, &recordJsons); err != nil {
+		log.Fatal("Records.UnmarshalJSON() failed: ", err)
+	}
+
+	for _, rr := range recordJsons {
+		r = append(r, &Record{
+			artist:      rr.Artist,
+			album:       rr.Album,
+			amazonUrl:   rr.AmazonUrl,
+			amazonPrice: rr.AmazonPrice,
+		})
+	}
+
+	return nil
+}
 
 func (r Records) PrintRecords() string {
 	const format = "%v\t%v\t%v\n"

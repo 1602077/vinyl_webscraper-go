@@ -16,12 +16,12 @@ var routes = Routes{
 		"homepage",
 		"GET",
 		"/",
-		DisplayRecordPrices,
+		HomePage,
 	},
 	Route{
 		"refresh",
 		"GET",
 		"/refresh",
-		RefreshRecordPrices,
+		GetRecordPrices,
 	},
 }
