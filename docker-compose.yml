@@ -5,7 +5,7 @@ services:
     tty: true
     build: .
     ports:
-      - 8000:8080
+      - "8080:8080"
     depends_on:
       - pg_docker
     networks:
@@ -20,7 +20,7 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - PGDATA=/var/lib/postgresql/data/pg_data/
     ports:
-      - '1234:5432'
+      - "1234:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
