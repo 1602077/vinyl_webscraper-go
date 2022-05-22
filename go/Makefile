@@ -1,19 +1,19 @@
 SHELL=/bin/zsh
-APP=webscraper
+APP_NAME=webscraper
 
 .DEFAULT_GOAL=help
 
-docker_run: docker_build # run application (webscraper & pg db) inside docker instances
-	cd .. && docker compose up
+build: clean # compiles go binaries locally
+	go build -o ./bin/${APP_NAME} cmd/main.go
 
-docker_build: # builds go & pg containers
+dbuild: # builds go & pg containers
 	cd .. && docker compose build
 
-build: clean # compiles go binaries
-	go build -o bin/${APP} cmd/main.go
+run: # run application locally from compiled binary (requires local pg instance)
+	cd bin/ && ./${APP_NAME} -env="../../.env.testing"
 
-run: # runs webscraper locally (requires local pg instance)
-	go run cmd/main.go -env="../.env.testing"
+up: dbuild # run application (webscraper & pg db) inside docker
+	cd .. && docker compose up
 
 test: # tests all packages recursively (requires local pg instance)
 	go test -v ./... | sed ''/PASS/s//$$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$$(printf "\033[31mFAIL\033[0m")/''

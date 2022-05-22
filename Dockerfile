@@ -7,11 +7,11 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o webscraper -a -installsuffix cgo ./cmd/
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
-WORKDIR /app
-COPY --from=builder /app/webscraper bin/
-COPY .env input.txt .
+WORKDIR /app/
 COPY /sql ./sql
-WORKDIR /app/bin
-COPY /go/templates ./templates
+COPY .env input.txt .
+COPY /go/templates ./go/templates
+COPY --from=builder /app/webscraper go/bin/
+WORKDIR /app/go/bin
 EXPOSE 8080
 CMD ["./webscraper"]
