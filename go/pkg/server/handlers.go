@@ -1,6 +1,8 @@
 package server
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"text/template"
@@ -10,10 +12,15 @@ import (
 	"github.com/1602077/webscraper/go/pkg/webscraper"
 )
 
-const ENV_FILEPATH = "../.env"
+var ENV_FILEPATH string
+
+func init() {
+	flag.StringVar(&ENV_FILEPATH, "env", "../.env", "sets environment config (.env) filepath")
+	flag.Parse()
+	fmt.Printf("runtime config filepath: '%s'\n", ENV_FILEPATH)
+}
 
 func RefreshRecordPrices(w http.ResponseWriter, r *http.Request) {
-	// Get current prices of all records in input.txt
 	wd := postgres.GetEnVar(ENV_FILEPATH, "WORKDIR")
 	urls := webscraper.ReadURLs(wd + "/input.txt")
 

@@ -57,12 +57,11 @@ func (pg *PgInstance) Connect(filepath string) *PgInstance {
 		log.Fatalf("err: opening connection to database '%s' failed.", dbname)
 	}
 
-	err = db.Ping()
-	if err != nil {
+	if err = db.Ping(); err != nil {
 		log.Fatalf("err: ping to database '%s' failed: %s", dbname, err)
 	}
 
-	log.Printf("connection to database '%s' successfully opened.\n", dbname)
+	log.Printf("connection to database '%s' opened.\n", dbname)
 	pg.db = db
 	return pg
 }

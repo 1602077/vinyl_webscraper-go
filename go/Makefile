@@ -13,7 +13,7 @@ build: clean # compiles go binaries
 	go build -o bin/${APP} cmd/main.go
 
 run: # runs webscraper locally (requires local pg instance)
-	go run cmd/main.go
+	go run cmd/main.go -env="../.env.testing"
 
 test: # tests all packages recursively (requires local pg instance)
 	go test -v ./... | sed ''/PASS/s//$$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$$(printf "\033[31mFAIL\033[0m")/''
