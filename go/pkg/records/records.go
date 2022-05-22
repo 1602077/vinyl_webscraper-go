@@ -24,7 +24,6 @@ type RecordJSON struct {
 	AmazonPrice float32 `json:"amazon_price"`
 }
 
-// TODO: Write Unit Test
 func (r *Record) MarshalJSON() ([]byte, error) {
 	return json.Marshal(RecordJSON{
 		r.artist,
@@ -70,7 +69,6 @@ func (r *Record) GetPrice() float32 {
 
 type Records []*Record
 
-// TODO: Write Unit Test
 func (r Records) MarshalJSON() ([]byte, error) {
 	var rJson []*RecordJSON
 	for _, rr := range r {

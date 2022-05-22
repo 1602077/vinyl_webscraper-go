@@ -15,7 +15,7 @@ import (
 var ENV_FILEPATH string
 
 func init() {
-	flag.StringVar(&ENV_FILEPATH, "env", "../.env", "sets environment config (.env) filepath")
+	flag.StringVar(&ENV_FILEPATH, "env", "../../.env", "sets environment config (.env) filepath")
 	flag.Parse()
 	fmt.Printf("runtime config filepath: '%s'\n", ENV_FILEPATH)
 }
@@ -27,18 +27,18 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 	var recs records.Records
 	recs = postgres.ReadQueryToRecords(pg.GetCurrentRecordPrices())
 
-	t, err := template.ParseFiles("templates/records.html")
+	t, err := template.ParseFiles("../templates/records.html")
 	if err != nil {
-		log.Fatal("DisplayRecordPrices: ", err)
+		log.Fatal("HomePage handler: ", err)
 	}
 	t.Execute(w, recs)
 }
 
 func GetRecordPrices(w http.ResponseWriter, r *http.Request) {
-	wd := postgres.GetEnVar(ENV_FILEPATH, "WORKDIR")
+	// wd := postgres.GetEnVar(ENV_FILEPATH, "WORKDIR")
 	// Get record price data
 	var currPrices records.Records
-	urls := webscraper.ReadURLs(wd + "/input.txt")
+	urls := webscraper.ReadURLs("../../input.txt")
 	currPrices = webscraper.GetRecords(urls)
 
 	// Write to postgres
@@ -51,7 +51,7 @@ func GetRecordPrices(w http.ResponseWriter, r *http.Request) {
 
 	cpJson, err := currPrices.MarshalJSON()
 	if err != nil {
-		log.Printf("GetRecordPrices: %s\n", err)
+		log.Printf("GetRecordPrices handler: %s\n", err)
 	}
 
 	// Write header
