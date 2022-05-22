@@ -12,8 +12,10 @@ import (
 	_ "github.com/1602077/webscraper/go/testing"
 )
 
-var TEST_ENV_FILEPATH string = "../.env.testing"
-var EXAMPLE_ENV_FILEPATH string = "../.env.example"
+var (
+	TEST_ENV_FILEPATH    string = "../.env.testing"
+	EXAMPLE_ENV_FILEPATH string = "../.env.example"
+)
 
 func TestGetPgInstace(t *testing.T) {
 	pginstance1 := GetPgInstance()
