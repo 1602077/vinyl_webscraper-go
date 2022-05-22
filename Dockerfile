@@ -11,6 +11,7 @@ WORKDIR /app
 COPY --from=builder /app/webscraper bin/
 COPY .env input.txt .
 COPY /sql ./sql
-EXPOSE 8080
 WORKDIR /app/bin
+COPY /go/templates ./templates
+EXPOSE 8080
 CMD ["./webscraper"]

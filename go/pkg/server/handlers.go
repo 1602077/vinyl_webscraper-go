@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"text/template"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/1602077/webscraper/go/pkg/webscraper"
 )
 
-const ENV_FILEPATH = "../.env.testing"
+const ENV_FILEPATH = "../.env"
 
 func RefreshRecordPrices(w http.ResponseWriter, r *http.Request) {
 	// Get current prices of all records in input.txt
@@ -27,7 +28,10 @@ func RefreshRecordPrices(w http.ResponseWriter, r *http.Request) {
 	}
 	pg.PrintCurrentRecordPrices()
 
-	t, _ := template.ParseFiles("templates/records.html")
+	t, err := template.ParseFiles("templates/records.html")
+	if err != nil {
+		log.Fatal("RefreshRecordPrices: ", err)
+	}
 	t.Execute(w, currPrices)
 }
 
@@ -38,6 +42,9 @@ func DisplayRecordPrices(w http.ResponseWriter, r *http.Request) {
 	var recs records.Records
 	recs = postgres.ReadQueryToRecords(pg.GetCurrentRecordPrices())
 
-	t, _ := template.ParseFiles("templates/records.html")
+	t, err := template.ParseFiles("templates/records.html")
+	if err != nil {
+		log.Fatal("DisplayRecordPrices: ", err)
+	}
 	t.Execute(w, recs)
 }
