@@ -1,6 +1,10 @@
 package server
 
-import "github.com/gorilla/mux"
+import (
+	"net/http"
+
+	"github.com/gorilla/mux"
+)
 
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
@@ -11,5 +15,13 @@ func NewRouter() *mux.Router {
 			Name(route.Name).
 			Handler(route.HandlerFunc)
 	}
+
+	// serve css files
+	router.
+		PathPrefix("/static/").
+		Handler(
+			http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))),
+		)
+
 	return router
 }
