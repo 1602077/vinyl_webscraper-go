@@ -1,6 +1,7 @@
 package records
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -60,4 +61,60 @@ func TestPrintRecords(t *testing.T) {
 	if len(actual) != 258 {
 		t.Fatalf("Expected length of 258 for PrintRecords(), Got: %v", len(actual))
 	}
+}
+
+func TestRecordMarshalJSON(t *testing.T) {
+	original := WKM
+
+	marshalled, err := original.MarshalJSON()
+	if err != nil {
+		t.Fatal("Record.MarshalJSON() returned an error, when non was expected.")
+	}
+
+	t.Run("Record.MarshalJSON()", func(t *testing.T) {
+		expected := []byte(`{"artist":"Tom Misch","album":"What Kinda Music","amazon_url":"","amazon_price":30}`)
+		res := bytes.Compare(marshalled, expected)
+		if res != 0 {
+			t.Fatalf("Expected: %v\nGot: %v\n", expected, marshalled)
+		}
+	})
+
+	t.Run("Record.UnmarshalJSON()", func(t *testing.T) {
+		unmarshalled := &Record{}
+		unmarshalled.UnmarshalJSON(marshalled)
+		if !reflect.DeepEqual(original, unmarshalled) {
+			t.Fatalf("Expected: %v\nGot: %v\n", original, unmarshalled)
+		}
+	})
+
+}
+
+func TestRecordsMarshalJSON(t *testing.T) {
+	original := Records{
+		WKM,
+		LF,
+	}
+
+	marshalled, err := original.MarshalJSON()
+	if err != nil {
+		t.Fatal("Records.MarshalJSON() returned an error, when non was expected.")
+	}
+
+	t.Run("Records.MarshalJSON()", func(t *testing.T) {
+		expected := []byte(`[{"artist":"Tom Misch","album":"What Kinda Music","amazon_url":"","amazon_price":30},{"artist":"Jorja Smith","album":"Lost \u0026 Found","amazon_url":"","amazon_price":100}]`)
+		res := bytes.Compare(marshalled, expected)
+		if res != 0 {
+			t.Fatalf("Expected: %v\nGot: %v\n", expected, marshalled)
+		}
+	})
+
+	t.Run("Records.UnmarshalJSON()", func(t *testing.T) {
+		unmarshalled := make(Records, 0)
+		unmarshalled.UnmarshalJSON(marshalled)
+
+		if !reflect.DeepEqual(original, unmarshalled) {
+			t.Fatalf("Expected: %v\nGot: %v\n", original, unmarshalled)
+		}
+	})
+
 }
