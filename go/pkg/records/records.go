@@ -26,23 +26,24 @@ type RecordJSON struct {
 
 func (r *Record) MarshalJSON() ([]byte, error) {
 	return json.Marshal(RecordJSON{
-		r.artist,
-		r.album,
-		r.amazonUrl,
-		r.amazonPrice,
+		Artist:      r.artist,
+		Album:       r.album,
+		AmazonUrl:   r.amazonUrl,
+		AmazonPrice: r.amazonPrice,
 	})
 }
 
-// TODO: Write Unit Test
 func (r *Record) UnmarshalJSON(b []byte) error {
 	tmp := &RecordJSON{}
 	if err := json.Unmarshal(b, &tmp); err != nil {
 		return err
 	}
+
 	r.artist = tmp.Artist
 	r.album = tmp.Album
 	r.amazonUrl = tmp.AmazonUrl
 	r.amazonPrice = tmp.AmazonPrice
+
 	return nil
 }
 
@@ -88,20 +89,19 @@ func (r Records) MarshalJSON() ([]byte, error) {
 	return data, nil
 }
 
-// TODO: Write Unit Test
-func (r Records) UnmarshalJSON(b []byte) error {
+func (r *Records) UnmarshalJSON(b []byte) error {
 	var recordJsons []*RecordJSON
 	if err := json.Unmarshal(b, &recordJsons); err != nil {
 		log.Fatal("Records.UnmarshalJSON() failed: ", err)
 	}
 
 	for _, rr := range recordJsons {
-		r = append(r, &Record{
-			artist:      rr.Artist,
-			album:       rr.Album,
-			amazonUrl:   rr.AmazonUrl,
-			amazonPrice: rr.AmazonPrice,
-		})
+		*r = append(*r, NewRecord(
+			rr.Artist,
+			rr.Album,
+			rr.AmazonUrl,
+			rr.AmazonPrice,
+		))
 	}
 
 	return nil
