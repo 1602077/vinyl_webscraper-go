@@ -11,6 +11,7 @@ WORKDIR /app/
 COPY /sql ./sql
 COPY .env input.txt .
 COPY /go/templates ./go/templates
+COPY /go/static ./go/static
 COPY --from=builder /app/webscraper go/bin/
 WORKDIR /app/go/bin
 EXPOSE 8080
