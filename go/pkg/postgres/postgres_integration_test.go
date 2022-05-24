@@ -24,8 +24,7 @@ func TestInsertRecord(t *testing.T) {
 		pg.InsertRecord(rec)
 	}
 
-	results := pg.GetCurrentRecordPrices()
-	returnedRec := ReadQueryToRecords(results)
+	returnedRec := pg.GetCurrentRecordPrices()
 
 	if !reflect.DeepEqual(insertRec, returnedRec) {
 		t.Errorf("Records inserted do not match that returned by read operation")

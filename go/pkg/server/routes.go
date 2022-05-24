@@ -1,3 +1,4 @@
+// server packages api routing and handling for go websraping app.
 package server
 
 import "net/http"
@@ -16,16 +17,16 @@ var routes = Routes{
 		"HomePage",
 		"GET",
 		"/",
-		HomePage,
+		GetRecords,
 	},
 	Route{
 		"Refresh",
 		"GET",
 		"/refresh",
-		GetRecordPrices,
+		PutRecords,
 	},
 	Route{
-		"RecordList",
+		"GetRecord",
 		"GET",
 		"/Record/{id}",
 		GetRecord,

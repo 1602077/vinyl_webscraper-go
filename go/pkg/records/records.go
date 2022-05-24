@@ -1,4 +1,4 @@
-// Data storage and handling methods.
+// Data storage struct and handling methods (e.g. json marshalling for api requests).
 package records
 
 import (
