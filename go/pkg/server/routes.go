@@ -13,15 +13,21 @@ type Routes []Route
 
 var routes = Routes{
 	Route{
-		"homepage",
+		"HomePage",
 		"GET",
 		"/",
 		HomePage,
 	},
 	Route{
-		"refresh",
+		"Refresh",
 		"GET",
 		"/refresh",
 		GetRecordPrices,
+	},
+	Route{
+		"RecordList",
+		"GET",
+		"/Record/{id}",
+		GetRecord,
 	},
 }
