@@ -1,3 +1,4 @@
+// server packages api routing and handling for go websraping app.
 package server
 
 import (
@@ -22,12 +23,14 @@ func init() {
 	fmt.Printf("runtime config filepath: '%s'\n", ENV_FILEPATH)
 }
 
-func HomePage(w http.ResponseWriter, r *http.Request) {
+// GetRecords queries the Record information and their current prices for all
+// records currently in the postgres database.
+func GetRecords(w http.ResponseWriter, r *http.Request) {
 	pg := postgres.GetPgInstance().Connect(ENV_FILEPATH)
 	defer pg.Close()
 
 	var recs records.Records
-	recs = postgres.ReadQueryToRecords(pg.GetCurrentRecordPrices())
+	recs = pg.GetCurrentRecordPrices()
 
 	/* HTML Rendered Site
 	t, err := template.ParseFiles("../templates/records.html")
@@ -37,7 +40,6 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, recs)
 	*/
 
-	// Create response body & header
 	recsJson, err := recs.MarshalJSON()
 	if err != nil {
 		log.Printf("err: HomePage handler: %s\n", err)
@@ -46,15 +48,16 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(recsJson)
-
 }
 
-func GetRecordPrices(w http.ResponseWriter, r *http.Request) {
+// PutRecords gets the current prices for all records in database, by
+// making a calling to webscaper.GetRecords. All prices are written back to
+// database and the record price information written to the http body.
+func PutRecords(w http.ResponseWriter, r *http.Request) {
 	var currPrices records.Records
 	urls := webscraper.ReadURLs("../../input.txt")
 	currPrices = webscraper.GetRecords(urls)
 
-	// Write to postgres
 	pg := postgres.GetPgInstance().Connect(ENV_FILEPATH)
 	defer pg.Close()
 	for _, rec := range currPrices {
@@ -62,7 +65,6 @@ func GetRecordPrices(w http.ResponseWriter, r *http.Request) {
 	}
 	pg.PrintCurrentRecordPrices()
 
-	// Create response body & header
 	cpJson, err := currPrices.MarshalJSON()
 	if err != nil {
 		log.Printf("err: GetRecordPrices handler: %s\n", err)
@@ -73,6 +75,8 @@ func GetRecordPrices(w http.ResponseWriter, r *http.Request) {
 	w.Write(cpJson)
 }
 
+// GetRecord takes an input record id and returns the record information (i.e.
+// artist, album) and it's full pricing history.
 func GetRecord(w http.ResponseWriter, r *http.Request) {
 	urlVars := mux.Vars(r)
 	rId, err := strconv.Atoi(urlVars["id"])
@@ -80,10 +84,10 @@ func GetRecord(w http.ResponseWriter, r *http.Request) {
 		log.Printf("GetRecord Handler: %s\n", err)
 	}
 
-	var rph *records.RecordPriceHistory
-
 	pg := postgres.GetPgInstance().Connect(ENV_FILEPATH)
 	defer pg.Close()
+
+	var rph *records.RecordPriceHistory
 	rph = pg.GetRecordPriceHistory(rId)
 
 	rphJson, err := json.Marshal(rph)
