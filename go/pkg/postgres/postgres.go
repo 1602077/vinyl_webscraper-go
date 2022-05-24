@@ -21,6 +21,7 @@ type PgInstance struct {
 var pginstance *PgInstance
 
 // NewPgInstace() is a factory function for creating a singleton PgInstance
+// TODO:  Embedd this into the Connect method and remove redudnat PgInstance struct
 func GetPgInstance() *PgInstance {
 	if pginstance == nil {
 		pginstance = new(PgInstance)
@@ -212,4 +213,47 @@ func (pg *PgInstance) PrintCurrentRecordPrices() {
 	rows := pg.GetCurrentRecordPrices()
 	rec := ReadQueryToRecords(rows)
 	rec.PrintRecords()
+}
+
+func (pg *PgInstance) GetRecordPriceHistory(id int) *r.RecordPriceHistory {
+	rIdQuery := `
+		SELECT r.artist, r.album
+		FROM records r
+		WHERE r.id = $1;`
+
+	var artist, album string
+	if err := pg.db.QueryRow(rIdQuery, id).Scan(&artist, &album); err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("err: GetRecordPriceHistory: no record id found at id %v\n", id)
+			return nil
+		}
+		log.Printf("GetRecordPriceHistory: parsing sql rId query failed: %s\n", err)
+	}
+
+	phQuery := `
+		SELECT p.date, p.price
+		FROM prices p
+		WHERE p.record_id = $1;`
+
+	rows, err := pg.db.Query(phQuery, id)
+	if err != nil {
+		log.Printf("err: GetRecordPriceHistory: price history query failed: %s\n", err)
+	}
+
+	var priceHistory []*r.PriceHist
+	for rows.Next() {
+		var date string
+		var price float32
+		if err := rows.Scan(&date, &price); err != nil {
+			break
+		}
+		priceHistory = append(priceHistory, &r.PriceHist{Date: date, Price: price})
+	}
+
+	return &r.RecordPriceHistory{
+		Id:           id,
+		Artist:       artist,
+		Album:        album,
+		PriceHistory: priceHistory,
+	}
 }

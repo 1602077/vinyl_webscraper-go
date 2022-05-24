@@ -24,6 +24,19 @@ type RecordJSON struct {
 	AmazonPrice float32 `json:"amazon_price"`
 }
 
+type PriceHist struct {
+	Date  string  `json:"date"`
+	Price float32 `json:"price"`
+}
+
+type RecordPriceHistory struct {
+	Id           int          `json:"id"`
+	Artist       string       `json:"artist"`
+	Album        string       `json:"album"`
+	AmazonUrl    string       `json:"amazon_url"`
+	PriceHistory []*PriceHist `json:"price_history"`
+}
+
 func (r *Record) MarshalJSON() ([]byte, error) {
 	return json.Marshal(RecordJSON{
 		Artist:      r.artist,
