@@ -78,10 +78,13 @@ func PutRecords(w http.ResponseWriter, r *http.Request) {
 // GetRecord takes an input record id and returns the record information (i.e.
 // artist, album) and it's full pricing history.
 func GetRecord(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	urlVars := mux.Vars(r)
 	rId, err := strconv.Atoi(urlVars["id"])
 	if err != nil {
 		log.Printf("GetRecord Handler: %s\n", err)
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	pg := postgres.GetPgInstance().Connect(ENV_FILEPATH)
@@ -89,13 +92,18 @@ func GetRecord(w http.ResponseWriter, r *http.Request) {
 
 	var rph *records.RecordPriceHistory
 	rph = pg.GetRecordPriceHistory(rId)
+	if rph == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	rphJson, err := json.Marshal(rph)
 	if err != nil {
 		log.Printf("err: GetRecord: %s\n", err)
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(rphJson)
 }
