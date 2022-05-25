@@ -239,7 +239,8 @@ func (pg *PgInstance) GetRecordPriceHistory(id int) *r.RecordPriceHistory {
 	phQuery := `
 		SELECT p.date, p.price
 		FROM prices p
-		WHERE p.record_id = $1;`
+		WHERE p.record_id = $1
+		ORDER BY p.date ASC;`
 
 	rows, err := pg.db.Query(phQuery, id)
 	if err != nil {
