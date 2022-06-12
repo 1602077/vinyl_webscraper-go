@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"testing"
 
-	db "github.com/1602077/webscraper/go/pkg/postgres"
-	r "github.com/1602077/webscraper/go/pkg/records"
+	"github.com/1602077/webscraper/go/pkg/postgres"
+	"github.com/1602077/webscraper/go/pkg/records"
 	_ "github.com/1602077/webscraper/go/testing"
 )
 
@@ -59,7 +59,7 @@ func TestGetAmazonPageInfo(t *testing.T) {
 	u := "https://www.amazon.co.uk/AM-VINYL-Arctic-Monkeys/dp/B00DKY4NBA/ref=sr_1_4?crid=EIQTUGWC5AAR&keywords=vinyl&qid=1645263030&sprefix=vinyl%2Caps%2C83&sr=8-4"
 
 	gotPageInfo := getAmazonPageInfo(u)
-	expectedPageInfo := r.NewRecord("Arctic Monkeys", "AM", u, 0.0)
+	expectedPageInfo := records.NewRecord("Arctic Monkeys", "AM", u, 0.0)
 	fmt.Print(gotPageInfo)
 
 	if gotPageInfo.GetAlbum() != expectedPageInfo.GetAlbum() {
@@ -71,12 +71,12 @@ func TestGetAmazonPageInfo(t *testing.T) {
 	}
 }
 
-// Tests that concurrent implimentation matches single threaded version
+// TestGetRecords verifies that concurrent implementation matches single threaded version
 func TestGetRecords(t *testing.T) {
-	wd := db.GetEnVar(ENV_FILEPATH, "WORKDIR")
+	wd := postgres.GetEnVar(ENV_FILEPATH, "WORKDIR")
 	urls := ReadURLs(wd + "/input.txt")
 
-	var sing, parr r.Records
+	var sing, parr records.Records
 	parr = GetRecords(urls)
 	for _, u := range urls {
 		sing = append(

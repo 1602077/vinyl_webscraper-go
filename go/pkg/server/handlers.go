@@ -1,4 +1,4 @@
-// server packages api routing and handling for go websraping app.
+// server packages api routing and handling for go webscraping app.
 package server
 
 import (
@@ -29,8 +29,7 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 	pg := postgres.GetPgInstance().Connect(ENV_FILEPATH)
 	defer pg.Close()
 
-	var recs records.Records
-	recs = pg.GetCurrentRecordPrices()
+	recs := pg.GetCurrentRecordPrices()
 
 	/* HTML Rendered Site
 	t, err := template.ParseFiles("../templates/records.html")
@@ -63,7 +62,7 @@ func PutRecords(w http.ResponseWriter, r *http.Request) {
 	for _, rec := range currPrices {
 		pg.InsertRecord(rec)
 	}
-	pg.PrintCurrentRecordPrices()
+	pg.PrintCurrentPrices()
 
 	cpJson, err := currPrices.MarshalJSON()
 	if err != nil {

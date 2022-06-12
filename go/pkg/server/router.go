@@ -1,4 +1,4 @@
-// server packages api routing and handling for go websraping app.
+// server packages api routing and handling for go webscraping app.
 package server
 
 import (

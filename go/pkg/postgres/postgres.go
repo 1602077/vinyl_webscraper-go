@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	r "github.com/1602077/webscraper/go/pkg/records"
+	"github.com/1602077/webscraper/go/pkg/records"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -21,7 +21,7 @@ type PgInstance struct {
 var pginstance *PgInstance
 
 // NewPgInstace is a factory function for creating a singleton PgInstance
-// TODO:  Embedd this into the Connect method and remove redudnat PgInstance struct
+// TODO:  Embed this into the Connect method and remove redundant PgInstance struct
 func GetPgInstance() *PgInstance {
 	if pginstance == nil {
 		pginstance = new(PgInstance)
@@ -29,8 +29,7 @@ func GetPgInstance() *PgInstance {
 	return pginstance
 }
 
-// GetEnVar uses godotenv to read in env variables specified by key from a .env
-// filepath.
+// GetEnVar uses godotenv to read in env variables specified by key from a .env filepath.
 func GetEnVar(filepath, key string) string {
 	err := godotenv.Load(filepath)
 	if err != nil {
@@ -39,7 +38,7 @@ func GetEnVar(filepath, key string) string {
 	return os.Getenv(key)
 }
 
-// Connect opens a connection to database specified by .env file.
+// Connect to database specified by .env file.
 func (pg *PgInstance) Connect(filepath string) *PgInstance {
 
 	host := GetEnVar(filepath, "DB_HOST")
@@ -68,14 +67,14 @@ func (pg *PgInstance) Connect(filepath string) *PgInstance {
 	return pg
 }
 
-// Close closes connection to postgres database.
+// Close connection to postgres database.
 func (pg *PgInstance) Close() {
 	pg.db.Close()
 	log.Print("connection to database closed.")
 }
 
 // GetRecordID retrieves the id of the input record from 'records' table.
-func (pg *PgInstance) GetRecordID(rec *r.Record) (int, bool) {
+func (pg *PgInstance) GetRecordID(rec *records.Record) (int, bool) {
 	existsQuery := `
 		SELECT id
 		FROM records
@@ -89,7 +88,7 @@ func (pg *PgInstance) GetRecordID(rec *r.Record) (int, bool) {
 	return recordID, true
 }
 
-// GerPriceID retrieves the id of a price row for a given record_id and date.
+// GetPriceID retrieves the id of a price row for a given record_id and date.
 func (pg *PgInstance) GetPriceID(recordID int, date time.Time) (int, bool) {
 	existsQuery := `
 		SELECT id
@@ -105,7 +104,7 @@ func (pg *PgInstance) GetPriceID(recordID int, date time.Time) (int, bool) {
 }
 
 // GetCurrentRecordPrice gets most recent prices of all records in pg database.
-func (pg *PgInstance) GetCurrentRecordPrices() r.Records {
+func (pg *PgInstance) GetCurrentRecordPrices() records.Records {
 	rows, err := pg.db.Query(`
 		SELECT r.Artist, r.Album, p.MaxPrice
 		FROM records r
@@ -119,14 +118,14 @@ func (pg *PgInstance) GetCurrentRecordPrices() r.Records {
 		log.Fatalf("err: GetCurrentRecordPrices() failed: %v.", err)
 	}
 
-	var Records r.Records
+	var Records records.Records
 	for rows.Next() {
 		var art, alb string
 		var price float32
 		if err := rows.Scan(&art, &alb, &price); err != nil {
 			break
 		}
-		Records = append(Records, r.NewRecord(art, alb, "", price))
+		Records = append(Records, records.NewRecord(art, alb, "", price))
 	}
 	if err := rows.Err(); err != nil {
 		log.Fatalf("err: GetCurrentRecordPrices() failed: %v.", err)
@@ -134,8 +133,8 @@ func (pg *PgInstance) GetCurrentRecordPrices() r.Records {
 	return Records
 }
 
-// GetAllRecordPrices retrives the full price history of a single input record.
-func (pg *PgInstance) GetAllRecordPrices(r *r.Record) map[string]float32 {
+// GetAllRecordPrices retrieves the full price history of a single input record.
+func (pg *PgInstance) GetAllRecordPrices(r *records.Record) map[string]float32 {
 	rows, err := pg.db.Query(`
 		SELECT date, price
 		FROM prices
@@ -165,7 +164,7 @@ func (pg *PgInstance) GetAllRecordPrices(r *r.Record) map[string]float32 {
 // InsertRecord adds record to the 'records' table if it does not exist and
 // inserts into current price into the pricing table. If a price already exists
 // for the date of insert it is updated instead.
-func (pg *PgInstance) InsertRecord(rec *r.Record) (int, int) {
+func (pg *PgInstance) InsertRecord(rec *records.Record) (int, int) {
 	recordID, ok := pg.GetRecordID(rec)
 	if !ok {
 		insertQuery := `
@@ -212,16 +211,16 @@ func (pg *PgInstance) InsertRecord(rec *r.Record) (int, int) {
 	return recordID, priceID
 }
 
-// PrintCurrentRecordPrices prints the artist, album and most recent price for
-// all records in database as tabwritten table.
-func (pg *PgInstance) PrintCurrentRecordPrices() {
+// PrintCurrentPrices prints the artist, album and most recent price for
+// all records in database as tab written table.
+func (pg *PgInstance) PrintCurrentPrices() {
 	rec := pg.GetCurrentRecordPrices()
-	rec.PrintRecords()
+	rec.Print()
 }
 
 // GetRecordPriceHistory retrieves the artist, album and full price history for
 // the record specified by the input id.
-func (pg *PgInstance) GetRecordPriceHistory(id int) *r.RecordPriceHistory {
+func (pg *PgInstance) GetRecordPriceHistory(id int) *records.RecordPriceHistory {
 	rIdQuery := `
 		SELECT r.artist, r.album
 		FROM records r
@@ -247,17 +246,17 @@ func (pg *PgInstance) GetRecordPriceHistory(id int) *r.RecordPriceHistory {
 		log.Printf("err: GetRecordPriceHistory: price history query failed: %s\n", err)
 	}
 
-	var priceHistory []*r.PriceHist
+	var priceHistory []*records.PriceHist
 	for rows.Next() {
 		var date string
 		var price float32
 		if err := rows.Scan(&date, &price); err != nil {
 			break
 		}
-		priceHistory = append(priceHistory, &r.PriceHist{Date: date, Price: price})
+		priceHistory = append(priceHistory, &records.PriceHist{Date: date, Price: price})
 	}
 
-	return &r.RecordPriceHistory{
+	return &records.RecordPriceHistory{
 		Id:           id,
 		Artist:       artist,
 		Album:        album,
