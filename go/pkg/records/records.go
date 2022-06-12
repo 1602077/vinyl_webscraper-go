@@ -1,4 +1,4 @@
-// Data storage struct and handling methods (e.g. json marshalling for api requests).
+// Data storage structures and handling methods for records scrapped by webscraper package.
 package records
 
 import (
@@ -37,29 +37,6 @@ type RecordPriceHistory struct {
 	PriceHistory []*PriceHist `json:"price_history"`
 }
 
-func (r *Record) MarshalJSON() ([]byte, error) {
-	return json.Marshal(RecordJSON{
-		Artist:      r.artist,
-		Album:       r.album,
-		AmazonUrl:   r.amazonUrl,
-		AmazonPrice: r.amazonPrice,
-	})
-}
-
-func (r *Record) UnmarshalJSON(b []byte) error {
-	tmp := &RecordJSON{}
-	if err := json.Unmarshal(b, &tmp); err != nil {
-		return err
-	}
-
-	r.artist = tmp.Artist
-	r.album = tmp.Album
-	r.amazonUrl = tmp.AmazonUrl
-	r.amazonPrice = tmp.AmazonPrice
-
-	return nil
-}
-
 func NewRecord(artist, album, url string, price float32) *Record {
 	return &Record{
 		artist:      artist,
@@ -79,6 +56,27 @@ func (r *Record) GetAlbum() string {
 
 func (r *Record) GetPrice() float32 {
 	return r.amazonPrice
+}
+
+func (r *Record) MarshalJSON() ([]byte, error) {
+	return json.Marshal(RecordJSON{
+		Artist:      r.artist,
+		Album:       r.album,
+		AmazonUrl:   r.amazonUrl,
+		AmazonPrice: r.amazonPrice,
+	})
+}
+
+func (r *Record) UnmarshalJSON(b []byte) error {
+	tmp := &RecordJSON{}
+	if err := json.Unmarshal(b, &tmp); err != nil {
+		return err
+	}
+	r.artist = tmp.Artist
+	r.album = tmp.Album
+	r.amazonUrl = tmp.AmazonUrl
+	r.amazonPrice = tmp.AmazonPrice
+	return nil
 }
 
 type Records []*Record
@@ -120,7 +118,7 @@ func (r *Records) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (r Records) PrintRecords() string {
+func (r Records) Print() string {
 	const format = "%v\t%v\t%v\n"
 
 	var b bytes.Buffer

@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"testing"
 
-	r "github.com/1602077/webscraper/go/pkg/records"
+	"github.com/1602077/webscraper/go/pkg/records"
 	_ "github.com/1602077/webscraper/go/testing"
 )
 
@@ -61,13 +61,13 @@ func TestReadRecordsTableQueryToRecord(t *testing.T) {
 	}
 }
 
-var recThatExists = r.NewRecord("TOM MISCH", "WHAT KINDA MUSIC", "", 20)
-var recThatExists2 = r.NewRecord("TOM MISCH", "WHAT KINDA MUSIC", "", 25)
-var recThatDoesNotExist = r.NewRecord("Bon Iver", "i,i", "", 10)
+var recThatExists = records.NewRecord("TOM MISCH", "WHAT KINDA MUSIC", "", 20)
+var recThatExists2 = records.NewRecord("TOM MISCH", "WHAT KINDA MUSIC", "", 25)
+var recThatDoesNotExist = records.NewRecord("Bon Iver", "i,i", "", 10)
 
 var tests = []struct {
 	name   string
-	record *r.Record
+	record *records.Record
 	id     int
 	exists bool
 }{
@@ -85,10 +85,10 @@ func TestGetRecordID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			id, ok := pg.GetRecordID(tt.record)
 			if tt.exists != ok {
-				t.Errorf("err: expected %t, got %t", tt.exists, ok)
+				t.Errorf("expected %t, got %t", tt.exists, ok)
 			}
 			if tt.id != id {
-				t.Errorf("err: recordIDs do not match, got %v, want %v.", id, tt.id)
+				t.Errorf("recordIDs do not match, got %v, want %v.", id, tt.id)
 			}
 		})
 	}
@@ -144,7 +144,7 @@ func setup() {
 		insertTestData()
 }
 
-// setupNoData intialises testing environment with empty sql tables
+// setupNoData initialises testing environment with empty sql tables
 func setupNoData() {
 	pg = GetPgInstance().
 		Connect(TEST_ENV_FILEPATH).
@@ -205,14 +205,14 @@ func (pg *PgInstance) GetAllPrices() *sql.Rows {
 }
 
 // Reads in the result of a db.Query(...) [*sql.Rows] to r.Records type
-func ReadRecordsTableQueryToRecord(rows *sql.Rows) r.Records {
-	var Records r.Records
+func ReadRecordsTableQueryToRecord(rows *sql.Rows) records.Records {
+	var Records records.Records
 	for rows.Next() {
 		var id, art, alb string
 		if err := rows.Scan(&id, &art, &alb); err != nil {
 			break
 		}
-		Records = append(Records, r.NewRecord(art, alb, "", 0))
+		Records = append(Records, records.NewRecord(art, alb, "", 0))
 	}
 	if err := rows.Err(); err != nil {
 		fmt.Printf("error: query row read failed")

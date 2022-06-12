@@ -56,7 +56,7 @@ func TestPrintRecords(t *testing.T) {
 		LF,
 		NWBD,
 	}
-	actual := records.PrintRecords()
+	actual := records.Print()
 
 	if len(actual) != 258 {
 		t.Fatalf("Expected length of 258 for PrintRecords(), Got: %v", len(actual))

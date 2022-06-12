@@ -1,4 +1,4 @@
-// Webscraper to scrape record information from an amazon URL.
+// webscraper to scrape record information from an amazon URL.
 package webscraper
 
 import (
@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	r "github.com/1602077/webscraper/go/pkg/records"
+	"github.com/1602077/webscraper/go/pkg/records"
 	"github.com/gocolly/colly"
 )
 
-// ReadURLs reads in  a list of urls each seperated by a `\n` from the input
+// ReadURLs reads in  a list of urls each separated by a `\n` from the input
 // file to a slice of strings.
 func ReadURLs(filename string) []string {
 	data, err := ioutil.ReadFile(filename)
@@ -25,7 +25,7 @@ func ReadURLs(filename string) []string {
 
 // getAmazonPageInfo gets the Artist, Album Name and Price for a given record
 // from an amazon URL by using the gocolly package.
-func getAmazonPageInfo(url string) (pageinfo *r.Record) {
+func getAmazonPageInfo(url string) (pageinfo *records.Record) {
 	c := colly.NewCollector()
 
 	c.OnHTML(`div[id=centerCol]`, func(e *colly.HTMLElement) {
@@ -44,7 +44,7 @@ func getAmazonPageInfo(url string) (pageinfo *r.Record) {
 			log.Println("no price found", e.Request.URL)
 		}
 
-		pageinfo = r.NewRecord(
+		pageinfo = records.NewRecord(
 			parseArtist(artist),
 			strings.Replace(album, " [VINYL]", "", 1),
 			url,
@@ -53,9 +53,9 @@ func getAmazonPageInfo(url string) (pageinfo *r.Record) {
 	})
 	c.Visit(url)
 
-	var emptyRecord *r.Record
+	var emptyRecord *records.Record
 	if emptyRecord == pageinfo {
-		log.Fatal("`getAmazonPageInfo()` returned nil for all fields. Exceed call limit for session")
+		log.Fatal("getAmazonPageInfo() returned nil for all fields. Exceed call limit for session")
 	}
 
 	return
@@ -70,7 +70,7 @@ func parseArtist(s string) string {
 }
 
 // parsePrice does a regex parse of the getAmazonPageInfo price to strip out
-// any redudant text that may be lingering in the html element.
+// any redundant text that may be lingering in the html element.
 func parsePrice(s string) float32 {
 	re := regexp.MustCompile(`[\d.]+`)
 	price_str := re.FindString(s)
@@ -80,13 +80,12 @@ func parsePrice(s string) float32 {
 
 // GetRecords concurrently calls getAmazonPageInfo to allow for the scraping of
 // URLS to be performed in parallel.
-func GetRecords(urls []string) (rs r.Records) {
+func GetRecords(urls []string) (rs records.Records) {
 	// limit to 10 concurrent requests at a time.
-	ch := make(chan *r.Record, 10)
+	ch := make(chan *records.Record, 10)
 	for _, u := range urls {
 		go func(u string) {
-			var r *r.Record
-			r = getAmazonPageInfo(u)
+			r := getAmazonPageInfo(u)
 			ch <- r
 		}(u)
 	}
