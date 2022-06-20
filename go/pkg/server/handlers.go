@@ -42,6 +42,8 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 	recsJson, err := recs.MarshalJSON()
 	if err != nil {
 		log.Printf("err: HomePage handler: %s\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -67,6 +69,8 @@ func PutRecords(w http.ResponseWriter, r *http.Request) {
 	cpJson, err := currPrices.MarshalJSON()
 	if err != nil {
 		log.Printf("err: GetRecordPrices handler: %s\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
