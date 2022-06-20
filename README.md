@@ -5,5 +5,5 @@
 ## Managing PostgreSQL Container
 - Deployment of pg container will automatically create the required tables by running `data/schema.sql`.
 - This can be done manually using `docker exec -i  pg psql -d webscraper -U root < data/schema.sql`.
-- Run `psql` inside of postges container using `docker exec -it pg psql -d webscraper -U root`.
+- Run `psql` inside of postgres container using `docker exec -it pg psql -d webscraper -U root`.
 
